@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>選一面牆，測出你現在的人生狀態 | 宣影壁布 SYIDEA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F4F0E8;--ink:#1C1A2E;--periwinkle:#7B8FC8;--lilac:#B8A0CC;
+  --mint:#6CC8C0;--peach:#E8B898;--rose:#CC6880;
+  --fd:'Noto Serif TC',serif;--fb:'Noto Sans TC',sans-serif;--fl:'Space Grotesk',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:200px 200px}
+.grain{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:250px 250px;mix-blend-mode:overlay}
+@keyframes heroGrad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--cream)}
+::-webkit-scrollbar-thumb{background:rgba(28,26,46,.2);border-radius:5px}
+button{transition:opacity .2s,transform .15s}
+button:hover{opacity:.82}
+button:active{transform:scale(.97)!important}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+
+
+
+
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── TWEAK DEFAULTS ────────────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "colorMood": "夢幻",
+  "typeVoice": "編輯",
+  "animSpeed": 2
+} /*EDITMODE-END*/;
+
+const MOOD_PRESETS = {
+  '夢幻': { heroGrad: 'linear-gradient(-45deg,#D8CCE8,#B8D0EC,#C4E4D8,#ECD8C4,#D8C4E4)', pageBg: '#F4F0E8', navBg: 'rgba(28,26,46,.93)', accent: '#7B8FC8' },
+  '沉靜': { heroGrad: 'linear-gradient(-45deg,#BEC8D4,#B0BCC8,#C4CDD6,#B8C4CE,#BAC6D2)', pageBg: '#EEEEF4', navBg: 'rgba(18,22,40,.95)', accent: '#5A7898' },
+  '清新': { heroGrad: 'linear-gradient(-45deg,#C0E4C0,#B4D8BC,#CCE8CC,#DFF0D8,#BCDFC4)', pageBg: '#EEF4EE', navBg: 'rgba(18,38,24,.93)', accent: '#4A9068' },
+  '藝術': { heroGrad: 'linear-gradient(-45deg,#E8D0A8,#D4B478,#E0C488,#C8A860,#D8C090)', pageBg: '#F4EDE4', navBg: 'rgba(40,22,8,.93)', accent: '#B06830' }
+};
+
+const TYPE_PRESETS = {
+  '詩意': { fd: "'Noto Serif TC',serif", fb: "'Noto Serif TC',serif" },
+  '現代': { fd: "'Space Grotesk','Noto Sans TC',sans-serif", fb: "'Noto Sans TC',sans-serif" },
+  '編輯': { fd: "'Noto Serif TC',serif", fb: "'Noto Sans TC',sans-serif" }
+};
+
+const SPEED_PRESETS = {
+  1: { heroDur: '22s', fadeDur: '1.4s', transDur: '0.55s', quizFade: '0.65s' },
+  2: { heroDur: '14s', fadeDur: '0.9s', transDur: '0.35s', quizFade: '0.4s' },
+  3: { heroDur: '7s', fadeDur: '0.45s', transDur: '0.18s', quizFade: '0.22s' }
+};
+
+function applyTweaks(t) {
+  const mood = MOOD_PRESETS[t.colorMood] || MOOD_PRESETS['夢幻'];
+  const type = TYPE_PRESETS[t.typeVoice] || TYPE_PRESETS['編輯'];
+  const speed = SPEED_PRESETS[t.animSpeed] || SPEED_PRESETS[2];
+  const r = document.documentElement.style;
+  r.setProperty('--hero-grad', mood.heroGrad);
+  r.setProperty('--page-bg', mood.pageBg);
+  r.setProperty('--nav-bg', mood.navBg);
+  r.setProperty('--accent', mood.accent);
+  r.setProperty('--quiz-bg', mood.pageBg);
+  r.setProperty('--fd', type.fd);
+  r.setProperty('--fb', type.fb);
+  r.setProperty('--hero-dur', speed.heroDur);
+  r.setProperty('--trans-dur', speed.transDur);
+  r.setProperty('--fade-dur', speed.fadeDur);
+  r.setProperty('--quiz-fade', speed.quizFade);
+}
+
+
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const QUESTIONS = [
+{ id: 1, eyebrow: 'QUESTION 01', text: '走進一個陌生空間，\n你的目光最先停在哪裡？',
+  options: [
+  { label: '金屬光澤的細節', sub: '冷冽、精準、有重量', g: 'linear-gradient(145deg,#1E1E28 0%,#3A3A50 45%,#7A7888 100%)' },
+  { label: '牆上的一幅畫', sub: '有故事在等你解讀', g: 'linear-gradient(145deg,#5C3820 0%,#A86830 45%,#D4A860 100%)' },
+  { label: '窗邊的綠意', sub: '生命力最先感染你', g: 'linear-gradient(145deg,#1E4828 0%,#3A8840 45%,#90C870 100%)' },
+  { label: '整體色調氛圍', sub: '你先感受整體，再看細節', g: 'linear-gradient(145deg,#7868A0 0%,#A898C8 45%,#D8C8E8 100%)' }]
+},
+{ id: 2, eyebrow: 'QUESTION 02', text: '最近一個禮拜，\n你最常出現的情緒是？',
+  options: [
+  { label: '沉穩專注', sub: '安靜地往前走', g: 'linear-gradient(145deg,#182838 0%,#284860 45%,#4A7888 100%)' },
+  { label: '熱情奔放', sub: '能量滿溢停不下來', g: 'linear-gradient(145deg,#A02820 0%,#D84828 45%,#F89050 100%)' },
+  { label: '輕盈自在', sub: '隨遇而安，心很輕', g: 'linear-gradient(145deg,#4888A0 0%,#78B8C8 45%,#C0E0E8 100%)' },
+  { label: '柔軟細膩', sub: '感覺比平常更敏銳', g: 'linear-gradient(145deg,#7A5068 0%,#B888A0 45%,#E0C0D0 100%)' }]
+},
+{ id: 3, eyebrow: 'QUESTION 03', text: '如果週末有一整天空閒，\n你會？',
+  options: [
+  { label: '動手做點什麼', sub: '喜歡看到成果被完成', g: 'linear-gradient(145deg,#3C2A18 0%,#785838 45%,#B89060 100%)' },
+  { label: '找人去新地方探險', sub: '陌生感讓你興奮', g: 'linear-gradient(145deg,#183830 0%,#2A7858 45%,#70C8A0 100%)' },
+  { label: '一個人安靜讀書喝咖啡', sub: '獨處是最好的充電', g: 'linear-gradient(145deg,#2A2018 0%,#5A4030 45%,#A08060 100%)' },
+  { label: '待在家陪家人或寵物', sub: '家，是最好的地方', g: 'linear-gradient(145deg,#504060 0%,#887898 45%,#C8B8D0 100%)' }]
+},
+{ id: 4, eyebrow: 'QUESTION 04', text: '形容你現在的人生階段，\n最像哪一種？',
+  options: [
+  { label: '打地基、扎實累積', sub: '慢，但每一步都算數', g: 'linear-gradient(145deg,#282018 0%,#504030 45%,#907060 100%)' },
+  { label: '開花期、燦爛綻放', sub: '終於輪到你發光了', g: 'linear-gradient(145deg,#780858 0%,#C83088 45%,#F870B0 100%)' },
+  { label: '沉澱期、向內整理', sub: '需要一點安靜和空間', g: 'linear-gradient(145deg,#203040 0%,#405060 45%,#8090A0 100%)' },
+  { label: '重塑期、想要全新開始', sub: '把舊的清空，換新的自己', g: 'linear-gradient(145deg,#183848 0%,#2878A8 45%,#70C0D8 100%)' }]
+},
+{ id: 5, eyebrow: 'QUESTION 05', text: '你希望走進家門時，\n第一秒感覺到什麼？',
+  options: [
+  { label: '「我回來了」的安心', sub: '家的溫度讓你放下', g: 'linear-gradient(145deg,#402A10 0%,#805020 45%,#C89060 100%)' },
+  { label: '「哇！」的驚喜感', sub: '每次走進都有新發現', g: 'linear-gradient(145deg,#201880 0%,#5030C8 45%,#9060F8 100%)' },
+  { label: '「呼～」的放鬆', sub: '身體先於大腦的解壓', g: 'linear-gradient(145deg,#184830 0%,#308858 45%,#70C890 100%)' },
+  { label: '「這就是我」的個性表達', sub: '家是你最誠實的自白', g: 'linear-gradient(145deg,#101018 0%,#202030 45%,#484858 100%)' }]
+}];
+
+
+const SCORE_MAP = [
+[['工匠', '理性', '未來'], ['藝術', '文青', '東方'], ['清新', '熱帶', '童心'], ['感受', '純粹', '藝術']],
+[['工匠', '東方', '理性'], ['熱帶', '童心', '未來'], ['清新', '感受', '純粹'], ['感受', '藝術', '文青']],
+[['工匠', '未來', '藝術'], ['熱帶', '童心', '未來'], ['感受', '文青', '純粹'], ['清新', '童心', '東方']],
+[['工匠', '理性', '東方'], ['熱帶', '藝術', '童心'], ['感受', '純粹', '文青'], ['未來', '清新', '藝術']],
+[['感受', '清新', '東方'], ['熱帶', '未來', '藝術'], ['純粹', '文青', '清新'], ['工匠', '童心', '理性']]];
+
+const TYPE_TO_RESULT = { '感受': 'introvert_sensitive', '文青': 'introvert_sensitive', '工匠': 'steady_craftsman', '純粹': 'pure_poetic', '熱帶': 'tropical_vibrant', '清新': 'fresh_healing', '藝術': 'artistic_soul', '童心': 'childlike_dreamer', '理性': 'rational_minimalist', '東方': 'oriental_elegant', '未來': 'future_explorer' };
+const PRIORITY = ['感受', '純粹', '藝術', '清新', '文青', '工匠', '東方', '熱帶', '童心', '未來', '理性'];
+
+const RESULTS = {
+  introvert_sensitive: { key: 'introvert_sensitive', name: '內斂感受型', mainSeries: '文青風系列', tagline: '不是每一種生活都要很大聲，\n有些美好，適合慢慢發生。', desc: '你最近在意的，不是更多刺激，而是剛剛好的節奏、留白與呼吸感。這類型的牆面不會搶話，卻能默默把空間氣氛整理得很舒服。', g: 'linear-gradient(145deg,#6A8860 0%,#A09870 35%,#C8B888 60%,#E0D8C0 100%)', accent: '#8BA870', ext: ['清新花草系列', '畫作系列', '大理石紋系列'], url: 'https://www.syideashop.com/categories/文青風系列' },
+  steady_craftsman: { key: 'steady_craftsman', name: '沉穩工匠型', mainSeries: '工業風系列', tagline: '真正的質感，\n是時間磨出來的。', desc: '你正在打地基的階段，對細節很講究、對虛華不耐煩。你需要的牆面有份量、有紋理、經得起每天注視，像老朋友一樣穩定地存在著。', g: 'linear-gradient(145deg,#1E1E28 0%,#383848 35%,#585868 60%,#807870 100%)', accent: '#888898', ext: ['大理石紋系列', '3D 立體畫系列', '幾何系列'], url: 'https://www.syideashop.com/categories/工業風系列' },
+  pure_poetic: { key: 'pure_poetic', name: '純粹詩意型', mainSeries: '大理石紋系列', tagline: '留白，\n是給好東西的舞台。', desc: '你懂得「少即是多」的力量。不需要很多，但每一樣都要剛剛好。這類型的牆面不炫技、不喧嘩，卻有一種安靜的高級感。', g: 'linear-gradient(145deg,#E8E0D4 0%,#D0C8B8 35%,#C0B8A8 60%,#E4DCCC 100%)', accent: '#A89880', ext: ['文青風系列', '幾何系列', '畫作系列'], url: 'https://www.syideashop.com/categories/大理石紋系列' },
+  tropical_vibrant: { key: 'tropical_vibrant', name: '熱帶奔放型', mainSeries: '熱帶花草系列', tagline: '把生活過得\n像盛夏一樣鮮明。', desc: '你正處於人生的旺盛期，渴望被熱烈的色彩包圍。你不怕大膽，你怕的是無聊。這類型的牆面會讓你每天早上起床都覺得：對，這就是我。', g: 'linear-gradient(145deg,#1A5028 0%,#38881E 35%,#88C820 55%,#D06020 100%)', accent: '#509030', ext: ['清新花草系列', '畫作系列', '兒童系列'], url: 'https://www.syideashop.com/categories/熱帶花草系列' },
+  fresh_healing: { key: 'fresh_healing', name: '清新療癒型', mainSeries: '清新花草系列', tagline: '好好呼吸，\n就是一種生活美學。', desc: '你最近需要的是「喘口氣」。這類型的牆面像一扇開著的窗，讓綠意、陽光、一點點風，很自然地流進你的生活節奏裡。', g: 'linear-gradient(145deg,#70B898 0%,#A8D8B8 35%,#C8ECD8 60%,#E4F4EC 100%)', accent: '#5AA880', ext: ['文青風系列', '熱帶花草系列', '畫作系列'], url: 'https://www.syideashop.com/categories/清新花草系列' },
+  artistic_soul: { key: 'artistic_soul', name: '藝術靈魂型', mainSeries: '畫作系列', tagline: '你的家，\n是一幅還在完成中的畫。', desc: '你把生活當成創作。你選的不是壁布，是一整個故事的開場。這類型的牆面讓你家變成一個只屬於你的藝廊。', g: 'linear-gradient(145deg,#781838 0%,#C05828 35%,#D89838 60%,#E8C860 100%)', accent: '#C06030', ext: ['文青風系列', '大理石紋系列', '熱帶花草系列'], url: 'https://www.syideashop.com/categories/畫作系列' },
+  childlike_dreamer: { key: 'childlike_dreamer', name: '童心夢想型', mainSeries: '兒童系列', tagline: '長大不代表\n要放棄童話。', desc: '你最可愛的地方，是你始終記得怎麼玩、怎麼笑。這類型的牆面有一種魔法——讓每個走進這個空間的人，都放下一點點武裝。', g: 'linear-gradient(145deg,#E8A870 0%,#F090A8 35%,#C090D8 60%,#90C0F0 100%)', accent: '#C878A8', ext: ['清新花草系列', '畫作系列', '熱帶花草系列'], url: 'https://www.syideashop.com/categories/兒童系列' },
+  rational_minimalist: { key: 'rational_minimalist', name: '理性極簡型', mainSeries: '幾何系列', tagline: '秩序，\n是另一種溫柔。', desc: '你喜歡乾淨、清楚、不拖泥帶水。這類型的牆面用線條和比例說話，不用多餘的裝飾，卻能精準地表達你對生活的態度。', g: 'linear-gradient(145deg,#1E2850 0%,#384880 35%,#7080B8 60%,#D0D8F0 100%)', accent: '#4868A8', ext: ['大理石紋系列', '工業風系列', '3D 立體畫系列'], url: 'https://www.syideashop.com/categories/幾何系列' },
+  oriental_elegant: { key: 'oriental_elegant', name: '東方雅士型', mainSeries: '中式風格系列', tagline: '老派的氣度，\n從來不會過時。', desc: '你對美的判斷，帶著一種不動聲色的深度。這類型的牆面有時間感、有文化感，不跟著流行跑，卻永遠是房間裡最有底蘊的那一面。', g: 'linear-gradient(145deg,#201008 0%,#581808 35%,#985028 60%,#C88848 100%)', accent: '#A05828', ext: ['文青風系列', '大理石紋系列', '畫作系列'], url: 'https://www.syideashop.com/categories/中式風格系列' },
+  future_explorer: { key: 'future_explorer', name: '未來探索型', mainSeries: '3D 立體畫系列', tagline: '每面牆，\n都可以是一扇新的門。', desc: '你對「現在」不滿足，你永遠在想下一步。這類型的牆面用視覺把空間打開，讓一面平面的牆，變成通往另一個維度的入口。', g: 'linear-gradient(145deg,#100870 0%,#5020B0 35%,#A030A0 60%,#10A8D0 100%)', accent: '#6030C0', ext: ['幾何系列', '工業風系列', '畫作系列'], url: 'https://www.syideashop.com/categories/3d立體畫系列' }
+};
+
+const THEMES = [
+{ key: 'industrial', name: '工業風系列', nameEn: 'INDUSTRIAL', mood: '帶點粗獷，帶點哲學', g: 'linear-gradient(145deg,#1E1E28 0%,#3A3A50 45%,#8C7C6C 100%)', url: 'https://www.syideashop.com/categories/工業風系列' },
+{ key: 'marble', name: '大理石紋系列', nameEn: 'MARBLE', mood: '安靜的高級感', g: 'linear-gradient(145deg,#EDE8E0 0%,#C8BEB0 45%,#D8D0C4 100%)', url: 'https://www.syideashop.com/categories/大理石紋系列' },
+{ key: 'literary', name: '文青風系列', nameEn: 'LITERARY', mood: '有溫度的留白', g: 'linear-gradient(145deg,#6A8860 0%,#A09870 45%,#D0C8A8 100%)', url: 'https://www.syideashop.com/categories/文青風系列' },
+{ key: 'kids', name: '兒童系列', nameEn: 'KIDS', mood: '長大不代表失去魔法', g: 'linear-gradient(145deg,#E8A870 0%,#F090A8 45%,#90C0F0 100%)', url: 'https://www.syideashop.com/categories/兒童系列' },
+{ key: 'artwork', name: '畫作系列', nameEn: 'ARTWORK', mood: '家是最私密的藝廊', g: 'linear-gradient(145deg,#781838 0%,#C05828 45%,#D4A84B 100%)', url: 'https://www.syideashop.com/categories/畫作系列' },
+{ key: 'tropical', name: '熱帶花草系列', nameEn: 'TROPICAL', mood: '讓生命力穿過牆', g: 'linear-gradient(145deg,#1A5028 0%,#38881E 45%,#C86820 100%)', url: 'https://www.syideashop.com/categories/熱帶花草系列' },
+{ key: 'botanical', name: '清新花草系列', nameEn: 'BOTANICAL', mood: '好好呼吸的空間', g: 'linear-gradient(145deg,#70B898 0%,#A8D8B8 45%,#E0F4EC 100%)', url: 'https://www.syideashop.com/categories/清新花草系列' },
+{ key: 'geometric', name: '幾何系列', nameEn: 'GEOMETRIC', mood: '秩序，是另一種美', g: 'linear-gradient(145deg,#1E2850 0%,#384880 45%,#D0D8F0 100%)', url: 'https://www.syideashop.com/categories/幾何系列' },
+{ key: 'oriental', name: '中式風格系列', nameEn: 'ORIENTAL', mood: '底蘊，不跟著流行走', g: 'linear-gradient(145deg,#201008 0%,#581808 45%,#C88848 100%)', url: 'https://www.syideashop.com/categories/中式風格系列' },
+{ key: '3dart', name: '3D 立體畫系列', nameEn: '3D ART', mood: '打開空間的另一個維度', g: 'linear-gradient(145deg,#100870 0%,#5020B0 45%,#10A8D0 100%)', url: 'https://www.syideashop.com/categories/3d立體畫系列' }];
+
+
+const SIM_STATS = { total: 2431, counts: { introvert_sensitive: 510, steady_craftsman: 280, pure_poetic: 190, tropical_vibrant: 310, fresh_healing: 245, artistic_soul: 180, childlike_dreamer: 120, rational_minimalist: 200, oriental_elegant: 90, future_explorer: 306 } };
+
+function calcResult(answers) {
+  const s = {};PRIORITY.forEach((t) => s[t] = 0);
+  answers.forEach((ai, qi) => SCORE_MAP[qi][ai].forEach((t) => s[t]++));
+  let best = PRIORITY[0],top = -1;
+  for (const t of PRIORITY) if (s[t] > top) {top = s[t];best = t;}
+  return TYPE_TO_RESULT[best];
+}
+
+// ── SHARED UI ─────────────────────────────────────────────────────────────────
+
+function Btn({ children, onClick, variant = 'dark', size = 'md', style: sx }) {
+  const sz = { sm: { padding: '8px 20px', fontSize: '13px' }, md: { padding: '12px 28px', fontSize: '14px' }, lg: { padding: '15px 36px', fontSize: '15px' } };
+  const v = {
+    dark: { background: '#1C1A2E', color: '#fff', border: 'none' },
+    ghost: { background: 'rgba(28,26,46,.07)', color: '#1C1A2E', border: '1.5px solid rgba(28,26,46,.15)' },
+    outline: { background: 'transparent', color: '#1C1A2E', border: '1.5px solid #1C1A2E' },
+    light: { background: 'rgba(255,255,255,.15)', color: '#fff', border: '1px solid rgba(255,255,255,.3)' },
+    white: { background: '#fff', color: '#1C1A2E', border: 'none' }
+  };
+  return <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '100px', cursor: 'pointer', fontFamily: 'var(--fl)', fontWeight: 500, letterSpacing: '.02em', transition: 'all .25s', ...sz[size], ...v[variant], ...sx }}>{children}</button>;
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function Nav({ onLogo }) {
+  return (
+    <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 28px', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,.06)', background: 'var(--nav-bg,rgba(28,26,46,.93))', opacity: "1" }}>
+      <button onClick={onLogo} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', fontFamily: 'var(--fl)', fontSize: '15px', fontWeight: 700, letterSpacing: '.06em' }}>SYIDEA</button>
+      <span style={{ color: 'rgba(255,255,255,.38)', fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase' }}>P-tex 主題式宣影布</span>
+    </nav>);
+
+}
+
+// ── LANDING ───────────────────────────────────────────────────────────────────
+function Landing({ onStart }) {
+  const [vis, setVis] = useState(false);
+  const themesRef = useRef(null);
+  useEffect(() => {setTimeout(() => setVis(true), 80);}, []);
+
+  return (
+    <div>
+      {/* Hero */}
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', padding: '120px 28px 80px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'var(--hero-grad,linear-gradient(-45deg,#D8CCE8,#B8D0EC,#C4E4D8,#ECD8C4,#D8C4E4))', backgroundSize: '400% 400%', animation: 'heroGrad var(--hero-dur,14s) ease infinite' }} />
+        <div className="grain" />
+        <div style={{ position: 'relative', zIndex: 3, maxWidth: '580px', opacity: vis ? 1 : 0, transform: vis ? 'none' : 'translateY(28px)', transition: 'all var(--fade-dur,.9s) cubic-bezier(.16,1,.3,1)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(28,26,46,.09)', borderRadius: '100px', marginBottom: '32px', fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.14em', color: 'rgba(28,26,46,.55)', textTransform: 'uppercase', padding: "1px 14px 6px" }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent,#7B8FC8)', display: 'inline-block' }} />
+            Interactive Theme Wall Quiz · P-tex 主題式宣影布
+          </div>
+          <h1 style={{ fontFamily: 'var(--fd)', lineHeight: 1.12, color: '#1C1A2E', margin: '0 0 24px', fontWeight: 600, fontSize: "76px" }}>選一面牆，<br />測出你現在的<br />人生狀態。</h1>
+          <p style={{ fontFamily: 'var(--fb)', fontSize: '16px', lineHeight: 1.85, color: 'rgba(28,26,46,.6)', margin: '0 0 44px' }}>有些人選的是風格，<br />有些人選到的，其實是此刻最需要的生活狀態。</p>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Btn onClick={onStart} size="lg" variant="dark">
+              開始測驗
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </Btn>
+            <Btn onClick={() => themesRef.current?.scrollIntoView({ behavior: 'smooth' })} size="lg" variant="ghost">先看 10 種主題 ↓</Btn>
+          </div>
+        </div>
+      </section>
+
+      {/* Theme grid */}
+      <section ref={themesRef} style={{ padding: '80px 28px 100px', background: '#1C1A2E' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '44px' }}>
+            <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.16em', color: 'rgba(255,255,255,.3)', marginBottom: '14px', textTransform: 'uppercase' }}>10 Themes</div>
+            <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(26px,5vw,46px)', color: '#fff', margin: '0 0 10px', lineHeight: 1.2, fontWeight: 600 }}>10 種主題，10 種生活狀態</h2>
+            <p style={{ fontFamily: 'var(--fb)', fontSize: '14px', color: 'rgba(255,255,255,.4)' }}>不想測驗？直接挑你喜歡的開始看</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(155px,1fr))', gap: '10px' }}>
+            {THEMES.map((t) => <ThemeCard key={t.key} theme={t} onStart={onStart} />)}
+          </div>
+        </div>
+      </section>
+    </div>);
+
+}
+
+function ThemeCard({ theme, onStart }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+    onClick={() => window.open(theme.url, '_blank')}
+    style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', aspectRatio: '3/4', cursor: 'pointer', background: theme.g, transform: hov ? 'translateY(-5px) scale(1.02)' : 'none', transition: 'transform .35s cubic-bezier(.16,1,.3,1)', boxShadow: hov ? '0 18px 44px rgba(0,0,0,.35)' : '0 3px 12px rgba(0,0,0,.2)' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(28,26,46,.85) 0%,rgba(28,26,46,.05) 55%,transparent 100%)' }} />
+      {hov && <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 3 }}>
+        <button onClick={(e) => {e.stopPropagation();onStart();}} style={{ background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.28)', borderRadius: '100px', color: '#fff', fontFamily: 'var(--fb)', fontSize: '11px', padding: '5px 11px', cursor: 'pointer' }}>測測我 →</button>
+      </div>}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 14px 14px', zIndex: 2 }}>
+        <div style={{ fontFamily: 'var(--fl)', fontSize: '9px', letterSpacing: '.14em', color: 'rgba(255,255,255,.45)', marginBottom: '3px' }}>{theme.nameEn}</div>
+        <div style={{ fontFamily: 'var(--fd)', fontSize: '14px', color: '#fff', fontWeight: 600, marginBottom: '3px' }}>{theme.name}</div>
+        <div style={{ fontFamily: 'var(--fb)', fontSize: '11px', color: 'rgba(255,255,255,.55)', lineHeight: 1.4 }}>{theme.mood}</div>
+      </div>
+    </div>);
+
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+function Quiz({ onDone, onBack }) {
+  const [qi, setQi] = useState(0);
+  const [answers, setAnswers] = useState([]);
+  const [sel, setSel] = useState(null);
+  const [vis, setVis] = useState(true);
+
+  const q = QUESTIONS[qi];
+
+  const choose = (i) => {
+    if (sel !== null) return;
+    setSel(i);
+    setTimeout(() => {
+      const next = [...answers, i];
+      setVis(false);
+      setTimeout(() => {
+        if (qi < 4) {setAnswers(next);setQi(qi + 1);setSel(null);setVis(true);} else
+        {onDone(next);}
+      }, 350);
+    }, 480);
+  };
+
+  const back = () => {
+    if (qi === 0) {onBack();return;}
+    setVis(false);
+    setTimeout(() => {setQi(qi - 1);setAnswers(answers.slice(0, -1));setSel(null);setVis(true);}, 300);
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#F4F0E8', display: 'flex', flexDirection: 'column' }}>
+      {/* Top bar */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: 'rgba(28,26,46,.93)', backdropFilter: 'blur(12px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px' }}>
+          <button onClick={back} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.55)', fontFamily: 'var(--fl)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            返回
+          </button>
+          <span style={{ fontFamily: 'var(--fl)', fontSize: '13px', color: 'rgba(255,255,255,.45)', letterSpacing: '.08em' }}>{String(qi + 1).padStart(2, '0')} / 05</span>
+        </div>
+        <div style={{ height: '2px', background: 'rgba(255,255,255,.1)' }}>
+          <div style={{ height: '100%', background: 'var(--accent,#7B8FC8)', width: `${qi / 5 * 100}%`, transition: 'width .5s ease' }} />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, paddingTop: '90px', paddingBottom: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: vis ? 1 : 0, transform: vis ? 'none' : 'translateY(12px)', transition: 'all .4s cubic-bezier(.16,1,.3,1)' }}>
+        <div style={{ width: '100%', maxWidth: '700px', padding: '0 20px' }}>
+          <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.18em', color: 'var(--accent,#7B8FC8)', marginBottom: '14px', textTransform: 'uppercase' }}>{q.eyebrow}</div>
+          <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(22px,4.5vw,38px)', color: '#1C1A2E', lineHeight: 1.38, margin: '0 0 36px', fontWeight: 600, whiteSpace: 'pre-line' }}>{q.text}</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
+            {q.options.map((opt, i) => {
+              const isSel = sel === i;
+              return (
+                <div key={i} onClick={() => choose(i)} style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '3/4', cursor: 'pointer', background: opt.g, boxShadow: isSel ? `0 0 0 3px var(--accent,#7B8FC8),0 12px 32px rgba(28,26,46,.18)` : '0 3px 14px rgba(28,26,46,.1)', transform: isSel ? 'scale(.97)' : 'scale(1)', transition: 'all .3s cubic-bezier(.16,1,.3,1)', height: "250px", width: "300px" }}>
+                  <div style={{ position: 'absolute', inset: 0, background: "linear-gradient(to top, rgba(28, 26, 46, 0.82) 0%, rgba(28, 26, 46, 0.04) 58%, transparent 100%) center center / auto", height: "250px", width: "450px", padding: "0px" }} />
+                  {isSel && <div style={{ position: 'absolute', top: '12px', right: '12px', width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent,#7B8FC8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </div>}
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 13px 13px', zIndex: 2 }}>
+                    <div style={{ fontFamily: 'var(--fd)', fontSize: '15px', color: '#fff', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>{opt.label}</div>
+                    <div style={{ fontFamily: 'var(--fb)', fontSize: '12px', color: 'rgba(255,255,255,.58)', lineHeight: 1.4 }}>{opt.sub}</div>
+                  </div>
+                </div>);
+
+            })}
+          </div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+// ── LOADING ───────────────────────────────────────────────────────────────────
+function Loading({ onDone }) {
+  const [pct, setPct] = useState(0);
+  const [wi, setWi] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPct((p) => {
+        if (p >= 100) {clearInterval(t);setTimeout(onDone, 400);return 100;}
+        return p + 2.2;
+      });
+      setWi((i) => (i + 1) % THEMES.length);
+    }, 45);
+    return () => clearInterval(t);
+  }, [onDone]);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', background: THEMES[wi].g, transition: 'background .1s linear' }}>
+      <div className="grain" />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(28,26,46,.62)' }} />
+      <div style={{ position: 'relative', zIndex: 3, textAlign: 'center', padding: '0 28px' }}>
+        <div style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(18px,4vw,28px)', color: '#fff', marginBottom: '10px', letterSpacing: '.02em' }}>正在為你選一面牆…</div>
+        <div style={{ fontFamily: 'var(--fl)', fontSize: '12px', color: 'rgba(255,255,255,.4)', marginBottom: '32px', letterSpacing: '.08em' }}>{THEMES[wi].name}</div>
+        <div style={{ width: '180px', height: '2px', background: 'rgba(255,255,255,.18)', borderRadius: '2px', margin: '0 auto' }}>
+          <div style={{ height: '100%', background: '#fff', width: `${pct}%`, borderRadius: '2px', transition: 'width .05s linear' }} />
+        </div>
+      </div>
+    </div>);
+
+}
+
+// ── RESULT ────────────────────────────────────────────────────────────────────
+function StatRow({ label, val, total, isMe, accent }) {
+  const [w, setW] = useState(0);
+  const pct = Math.round(val / total * 100);
+  useEffect(() => {setTimeout(() => setW(pct), 300);}, [pct]);
+  return (
+    <div style={{ marginBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+        <span style={{ fontFamily: 'var(--fb)', fontSize: '13px', color: isMe ? '#1C1A2E' : 'rgba(28,26,46,.5)', fontWeight: isMe ? 700 : 400 }}>
+          {label}{isMe && <span style={{ fontSize: '10px', color: accent, marginLeft: '6px', fontFamily: 'var(--fl)' }}>← 你</span>}
+        </span>
+        <span style={{ fontFamily: 'var(--fl)', fontSize: '12px', color: isMe ? accent : 'rgba(28,26,46,.35)' }}>{pct}%</span>
+      </div>
+      <div style={{ height: '5px', background: 'rgba(28,26,46,.08)', borderRadius: '5px', overflow: 'hidden' }}>
+        <div style={{ height: '100%', borderRadius: '5px', background: isMe ? accent : 'rgba(28,26,46,.14)', width: `${w}%`, transition: 'width 1.3s cubic-bezier(.16,1,.3,1)' }} />
+      </div>
+    </div>);
+
+}
+
+function Result({ rk, onRetake }) {
+  const r = RESULTS[rk];
+  const [vis, setVis] = useState(false);
+  useEffect(() => {setTimeout(() => setVis(true), 80);}, []);
+  const totalVotes = Object.values(SIM_STATS.counts).reduce((a, b) => a + b, 0) + SIM_STATS.total;
+
+  const getTheme = (name) => THEMES.find((t) => t.name === name);
+
+  const copyLink = () => {
+    try {navigator.clipboard.writeText(window.location.href).then(() => alert('連結已複製！'));}
+    catch {alert('請手動複製網址列連結');}
+  };
+
+  return (
+    <div style={{ background: 'var(--page-bg,#F4F0E8)', opacity: vis ? 1 : 0, transition: 'opacity .6s ease' }}>
+
+      {/* ── Hero ── */}
+      <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '120px 28px 64px', overflow: 'hidden', background: r.g }}>
+        <div className="grain" />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(28,26,46,.78) 0%,rgba(28,26,46,.08) 60%,transparent 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 3, maxWidth: '640px', animation: 'fadeUp .8s cubic-bezier(.16,1,.3,1) both' }}>
+          <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.2em', color: 'rgba(255,255,255,.5)', marginBottom: '14px', textTransform: 'uppercase' }}>YOUR WALL STATE</div>
+          <div style={{ fontFamily: 'var(--fl)', fontSize: '12px', color: 'rgba(255,255,255,.55)', marginBottom: '6px', letterSpacing: '.06em' }}>{r.mainSeries}</div>
+          <h1 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(34px,7vw,68px)', color: '#fff', margin: '0 0 28px', lineHeight: 1.12, fontWeight: 600 }}>你是<br />「{r.name}」</h1>
+          <p style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(16px,2.5vw,21px)', color: 'rgba(255,255,255,.82)', lineHeight: 1.72, whiteSpace: 'pre-line' }}>{r.tagline}</p>
+        </div>
+      </div>
+
+      {/* ── Analysis ── */}
+      <div style={{ padding: '64px 28px', maxWidth: '660px', margin: '0 auto' }}>
+        <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.15em', color: 'var(--accent,#7B8FC8)', marginBottom: '14px', textTransform: 'uppercase' }}>Analysis</div>
+        <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(20px,3.5vw,30px)', color: '#1C1A2E', margin: '0 0 20px', fontWeight: 600 }}>你的現在，適合這樣的空間語言</h2>
+        <p style={{ fontFamily: 'var(--fb)', fontSize: '16px', color: 'rgba(28,26,46,.68)', lineHeight: 1.88 }}>{r.desc}</p>
+      </div>
+
+      {/* ── Extensions ── */}
+      <div style={{ padding: '0 28px 64px', maxWidth: '660px', margin: '0 auto' }}>
+        <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.15em', color: 'var(--accent,#7B8FC8)', marginBottom: '14px', textTransform: 'uppercase' }}>Also For You</div>
+        <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(18px,3vw,26px)', color: '#1C1A2E', margin: '0 0 22px', fontWeight: 600 }}>推薦你從這些主題開始看</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: '10px' }}>
+          {r.ext.map((name) => {
+            const t = getTheme(name);
+            if (!t) return null;
+            return (
+              <div key={name} onClick={() => window.open(t.url, '_blank')}
+              onMouseEnter={(e) => {e.currentTarget.style.transform = 'translateY(-4px)';e.currentTarget.style.boxShadow = '0 14px 36px rgba(28,26,46,.18)';}}
+              onMouseLeave={(e) => {e.currentTarget.style.transform = 'none';e.currentTarget.style.boxShadow = 'none';}}
+              style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'pointer', background: t.g, aspectRatio: '4/3', position: 'relative', transition: 'transform .28s ease,box-shadow .28s ease' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(28,26,46,.78) 0%,transparent 60%)' }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 13px 12px', zIndex: 2 }}>
+                  <div style={{ fontFamily: 'var(--fl)', fontSize: '9px', letterSpacing: '.12em', color: 'rgba(255,255,255,.45)', marginBottom: '2px' }}>{t.nameEn}</div>
+                  <div style={{ fontFamily: 'var(--fd)', fontSize: '14px', color: '#fff', fontWeight: 600 }}>{t.name}</div>
+                  <div style={{ fontFamily: 'var(--fb)', fontSize: '11px', color: 'rgba(255,255,255,.6)', marginTop: '5px' }}>查看商品 →</div>
+                </div>
+              </div>);
+
+          })}
+        </div>
+      </div>
+
+      {/* ── Stats ── */}
+      <div style={{ background: '#1C1A2E', padding: '60px 28px' }}>
+        <div style={{ maxWidth: '660px', margin: '0 auto' }}>
+          <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.15em', color: 'rgba(255,255,255,.3)', marginBottom: '14px', textTransform: 'uppercase' }}>Stats</div>
+          <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(20px,3vw,26px)', color: '#fff', margin: '0 0 8px', fontWeight: 600 }}>看看其他人的選擇</h2>
+          <p style={{ fontFamily: 'var(--fb)', fontSize: '14px', color: 'rgba(255,255,255,.38)', margin: '0 0 32px' }}>目前已有 <strong style={{ color: '#fff' }}>{totalVotes.toLocaleString()}</strong> 人完成測驗</p>
+          {Object.entries(SIM_STATS.counts).map(([k, v]) => {
+            const rr = RESULTS[k];if (!rr) return null;
+            return <StatRow key={k} label={rr.name} val={v} total={totalVotes} isMe={k === rk} accent={r.accent} />;
+          })}
+        </div>
+      </div>
+
+      {/* ── CTA ── */}
+      <div style={{ padding: '64px 28px', maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(22px,4vw,36px)', color: '#1C1A2E', margin: '0 0 10px', lineHeight: 1.28, fontWeight: 600 }}>喜歡這個狀態，<br />就讓牆面把它留下來</h2>
+        <p style={{ fontFamily: 'var(--fb)', fontSize: '14px', color: 'rgba(28,26,46,.45)', margin: '0 0 36px' }}>{r.mainSeries} · {r.name}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '11px', alignItems: 'center' }}>
+          <Btn size="lg" variant="dark" onClick={() => window.open(r.url, '_blank')} sx={{ width: '100%', maxWidth: '340px' }}>查看這個系列商品 →</Btn>
+          <Btn size="lg" variant="outline" onClick={() => window.open('https://www.syideashop.com', '_blank')} sx={{ width: '100%', maxWidth: '340px' }}>前往官網看更多案例</Btn>
+          <Btn size="lg" variant="ghost" onClick={onRetake} sx={{ width: '100%', maxWidth: '340px' }}>再測一次</Btn>
+        </div>
+      </div>
+
+      {/* ── Share ── */}
+      <div style={{ background: 'rgba(28,26,46,.04)', borderTop: '1px solid rgba(28,26,46,.08)', padding: '48px 28px 80px', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.14em', color: 'rgba(28,26,46,.3)', marginBottom: '10px', textTransform: 'uppercase' }}>Share</div>
+        <h3 style={{ fontFamily: 'var(--fd)', fontSize: '22px', color: '#1C1A2E', margin: '0 0 26px', fontWeight: 600 }}>把你的結果分享出去</h3>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Btn variant="ghost" onClick={() => window.open(`https://line.me/R/share?text=${encodeURIComponent('我測出來是「' + r.name + '」！測測你是哪種牆面人格 ' + window.location.href)}`)}>分享到 LINE</Btn>
+          <Btn variant="ghost" onClick={copyLink}>複製連結</Btn>
+          <Btn variant="ghost" onClick={() => alert('截圖畫面後，直接分享到 Instagram Story！')}>分享到 IG</Btn>
+        </div>
+      </div>
+    </div>);
+
+}
+
+// ── APP ROOT ─────────────────────────────────────────────────────────────────
+function App() {
+  const [scene, setScene] = useState('landing');
+  const [rk, setRk] = useState(null);
+
+  const goQuiz = () => {window.scrollTo(0, 0);setScene('quiz');};
+  const goLanding = () => {window.scrollTo(0, 0);setScene('landing');};
+
+  const finishQuiz = (ans) => {
+    const result = calcResult(ans);
+    setRk(result);
+    setScene('loading');
+  };
+
+  const afterLoad = () => {window.scrollTo(0, 0);setScene('result');};
+
+  return (
+    <div>
+      {(scene === 'landing' || scene === 'result') && <Nav onLogo={goLanding} />}
+      {scene === 'landing' && <Landing onStart={goQuiz} />}
+      {scene === 'quiz' && <Quiz onDone={finishQuiz} onBack={goLanding} />}
+      {scene === 'loading' && <Loading onDone={afterLoad} />}
+      {scene === 'result' && rk && <Result rk={rk} onRetake={goLanding} />}
+    </div>);
+
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
