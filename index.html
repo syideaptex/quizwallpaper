@@ -6,11 +6,11 @@
 <title>選一面牆，測出你現在的人生狀態 | 宣影壁布 SYIDEA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<script type="text/babel" src="tweaks-panel.jsx"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -28,23 +28,66 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;o
   background-size:250px 250px;mix-blend-mode:overlay}
 @keyframes heroGrad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-12px,18px) scale(1.04)}}
+@keyframes shimmer{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.7;transform:scale(1.03)}}
+@keyframes textShine{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+@keyframes loadingPulse{
+  0%,100%{opacity:.7}
+  50%{opacity:1}
+}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:var(--cream)}
 ::-webkit-scrollbar-thumb{background:rgba(28,26,46,.2);border-radius:5px}
 button{transition:opacity .2s,transform .15s}
 button:hover{opacity:.82}
 button:active{transform:scale(.97)!important}
+
+/* ─── carousel ─── */
+.carousel-track::-webkit-scrollbar{display:none}
+.carousel-track{scrollbar-width:none;-ms-overflow-style:none}
+
+/* ─── Tweaks panel ─── */
+.twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+  max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+  background:rgba(250,249,247,.78);color:#29261b;
+  -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+  border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+  font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+.twk-hd{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 8px 10px 14px;cursor:move;user-select:none}
+.twk-hd b{font-size:12px;font-weight:600}
+.twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+  width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+.twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+.twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+  overflow-y:auto;min-height:0}
+.twk-row{display:flex;flex-direction:column;gap:5px}
+.twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
+.twk-lbl>span:first-child{font-weight:500}
+.twk-val{color:rgba(41,38,27,.5)}
+.twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:rgba(41,38,27,.45);padding:10px 0 0}
+.twk-sect:first-child{padding-top:0}
+.twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+  background:rgba(0,0,0,.06);user-select:none}
+.twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+  background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+  transition:left .18s cubic-bezier(.3,.7,.4,1),width .18s}
+.twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+  background:transparent;color:inherit;font-weight:500;height:22px;
+  border-radius:6px;cursor:default;font-size:11px}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-
-
-
-
-
 const { useState, useEffect, useRef, useCallback } = React;
 
 // ── TWEAK DEFAULTS ────────────────────────────────────────────────────────────
@@ -52,7 +95,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "colorMood": "夢幻",
   "typeVoice": "編輯",
   "animSpeed": 2
-} /*EDITMODE-END*/;
+}/*EDITMODE-END*/;
 
 const MOOD_PRESETS = {
   '夢幻': { heroGrad: 'linear-gradient(-45deg,#D8CCE8,#B8D0EC,#C4E4D8,#ECD8C4,#D8C4E4)', pageBg: '#F4F0E8', navBg: 'rgba(28,26,46,.93)', accent: '#7B8FC8' },
@@ -60,212 +103,427 @@ const MOOD_PRESETS = {
   '清新': { heroGrad: 'linear-gradient(-45deg,#C0E4C0,#B4D8BC,#CCE8CC,#DFF0D8,#BCDFC4)', pageBg: '#EEF4EE', navBg: 'rgba(18,38,24,.93)', accent: '#4A9068' },
   '藝術': { heroGrad: 'linear-gradient(-45deg,#E8D0A8,#D4B478,#E0C488,#C8A860,#D8C090)', pageBg: '#F4EDE4', navBg: 'rgba(40,22,8,.93)', accent: '#B06830' }
 };
-
 const TYPE_PRESETS = {
   '詩意': { fd: "'Noto Serif TC',serif", fb: "'Noto Serif TC',serif" },
   '現代': { fd: "'Space Grotesk','Noto Sans TC',sans-serif", fb: "'Noto Sans TC',sans-serif" },
   '編輯': { fd: "'Noto Serif TC',serif", fb: "'Noto Sans TC',sans-serif" }
 };
-
 const SPEED_PRESETS = {
-  1: { heroDur: '22s', fadeDur: '1.4s', transDur: '0.55s', quizFade: '0.65s' },
-  2: { heroDur: '14s', fadeDur: '0.9s', transDur: '0.35s', quizFade: '0.4s' },
-  3: { heroDur: '7s', fadeDur: '0.45s', transDur: '0.18s', quizFade: '0.22s' }
+  1: { heroDur: '22s', fadeDur: '1.4s', quizFade: '0.65s' },
+  2: { heroDur: '14s', fadeDur: '0.9s',  quizFade: '0.4s'  },
+  3: { heroDur: '7s',  fadeDur: '0.45s', quizFade: '0.22s' }
 };
 
 function applyTweaks(t) {
-  const mood = MOOD_PRESETS[t.colorMood] || MOOD_PRESETS['夢幻'];
-  const type = TYPE_PRESETS[t.typeVoice] || TYPE_PRESETS['編輯'];
+  const mood  = MOOD_PRESETS[t.colorMood] || MOOD_PRESETS['夢幻'];
+  const type  = TYPE_PRESETS[t.typeVoice] || TYPE_PRESETS['編輯'];
   const speed = SPEED_PRESETS[t.animSpeed] || SPEED_PRESETS[2];
   const r = document.documentElement.style;
   r.setProperty('--hero-grad', mood.heroGrad);
-  r.setProperty('--page-bg', mood.pageBg);
-  r.setProperty('--nav-bg', mood.navBg);
-  r.setProperty('--accent', mood.accent);
-  r.setProperty('--quiz-bg', mood.pageBg);
+  r.setProperty('--page-bg',   mood.pageBg);
+  r.setProperty('--nav-bg',    mood.navBg);
+  r.setProperty('--accent',    mood.accent);
   r.setProperty('--fd', type.fd);
   r.setProperty('--fb', type.fb);
   r.setProperty('--hero-dur', speed.heroDur);
-  r.setProperty('--trans-dur', speed.transDur);
   r.setProperty('--fade-dur', speed.fadeDur);
   r.setProperty('--quiz-fade', speed.quizFade);
+  document.body.style.background = mood.pageBg;
 }
 
-
-
 // ── DATA ──────────────────────────────────────────────────────────────────────
-
+// Quiz options now have Unsplash background photos matching the copy
 const QUESTIONS = [
 { id: 1, eyebrow: 'QUESTION 01', text: '走進一個陌生空間，\n你的目光最先停在哪裡？',
   options: [
-  { label: '金屬光澤的細節', sub: '冷冽、精準、有重量', g: 'linear-gradient(145deg,#1E1E28 0%,#3A3A50 45%,#7A7888 100%)' },
-  { label: '牆上的一幅畫', sub: '有故事在等你解讀', g: 'linear-gradient(145deg,#5C3820 0%,#A86830 45%,#D4A860 100%)' },
-  { label: '窗邊的綠意', sub: '生命力最先感染你', g: 'linear-gradient(145deg,#1E4828 0%,#3A8840 45%,#90C870 100%)' },
-  { label: '整體色調氛圍', sub: '你先感受整體，再看細節', g: 'linear-gradient(145deg,#7868A0 0%,#A898C8 45%,#D8C8E8 100%)' }]
+  { label: '金屬光澤的細節', sub: '冷冽、精準、有重量', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', g: 'linear-gradient(145deg,#1E1E28 0%,#3A3A50 45%,#7A7888 100%)' },
+  { label: '牆上的一幅畫', sub: '有故事在等你解讀', img: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80', g: 'linear-gradient(145deg,#5C3820 0%,#A86830 45%,#D4A860 100%)' },
+  { label: '窗邊的綠意', sub: '生命力最先感染你', img: 'https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&q=80', g: 'linear-gradient(145deg,#1E4828 0%,#3A8840 45%,#90C870 100%)' },
+  { label: '整體色調氛圍', sub: '你先感受整體，再看細節', img: 'https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?w=800&q=80', g: 'linear-gradient(145deg,#7868A0 0%,#A898C8 45%,#D8C8E8 100%)' }]
 },
 { id: 2, eyebrow: 'QUESTION 02', text: '最近一個禮拜，\n你最常出現的情緒是？',
   options: [
-  { label: '沉穩專注', sub: '安靜地往前走', g: 'linear-gradient(145deg,#182838 0%,#284860 45%,#4A7888 100%)' },
-  { label: '熱情奔放', sub: '能量滿溢停不下來', g: 'linear-gradient(145deg,#A02820 0%,#D84828 45%,#F89050 100%)' },
-  { label: '輕盈自在', sub: '隨遇而安，心很輕', g: 'linear-gradient(145deg,#4888A0 0%,#78B8C8 45%,#C0E0E8 100%)' },
-  { label: '柔軟細膩', sub: '感覺比平常更敏銳', g: 'linear-gradient(145deg,#7A5068 0%,#B888A0 45%,#E0C0D0 100%)' }]
+  { label: '沉穩專注', sub: '安靜地往前走', img: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=800&q=80', g: 'linear-gradient(145deg,#182838 0%,#284860 45%,#4A7888 100%)' },
+  { label: '熱情奔放', sub: '能量滿溢停不下來', img: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80', g: 'linear-gradient(145deg,#A02820 0%,#D84828 45%,#F89050 100%)' },
+  { label: '輕盈自在', sub: '隨遇而安，心很輕', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', g: 'linear-gradient(145deg,#4888A0 0%,#78B8C8 45%,#C0E0E8 100%)' },
+  { label: '柔軟細膩', sub: '感覺比平常更敏銳', img: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&q=80', g: 'linear-gradient(145deg,#7A5068 0%,#B888A0 45%,#E0C0D0 100%)' }]
 },
 { id: 3, eyebrow: 'QUESTION 03', text: '如果週末有一整天空閒，\n你會？',
   options: [
-  { label: '動手做點什麼', sub: '喜歡看到成果被完成', g: 'linear-gradient(145deg,#3C2A18 0%,#785838 45%,#B89060 100%)' },
-  { label: '找人去新地方探險', sub: '陌生感讓你興奮', g: 'linear-gradient(145deg,#183830 0%,#2A7858 45%,#70C8A0 100%)' },
-  { label: '一個人安靜讀書喝咖啡', sub: '獨處是最好的充電', g: 'linear-gradient(145deg,#2A2018 0%,#5A4030 45%,#A08060 100%)' },
-  { label: '待在家陪家人或寵物', sub: '家，是最好的地方', g: 'linear-gradient(145deg,#504060 0%,#887898 45%,#C8B8D0 100%)' }]
+  { label: '動手做點什麼', sub: '喜歡看到成果被完成', img: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&q=80', g: 'linear-gradient(145deg,#3C2A18 0%,#785838 45%,#B89060 100%)' },
+  { label: '找人去新地方探險', sub: '陌生感讓你興奮', img: 'https://images.unsplash.com/photo-1508004680771-708b02aabdc0?w=800&q=80', g: 'linear-gradient(145deg,#183830 0%,#2A7858 45%,#70C8A0 100%)' },
+  { label: '一個人安靜讀書喝咖啡', sub: '獨處是最好的充電', img: 'https://images.unsplash.com/photo-1481833761820-0509d3217039?w=800&q=80', g: 'linear-gradient(145deg,#2A2018 0%,#5A4030 45%,#A08060 100%)' },
+  { label: '待在家陪家人或寵物', sub: '家，是最好的地方', img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&q=80', g: 'linear-gradient(145deg,#504060 0%,#887898 45%,#C8B8D0 100%)' }]
 },
 { id: 4, eyebrow: 'QUESTION 04', text: '形容你現在的人生階段，\n最像哪一種？',
   options: [
-  { label: '打地基、扎實累積', sub: '慢，但每一步都算數', g: 'linear-gradient(145deg,#282018 0%,#504030 45%,#907060 100%)' },
-  { label: '開花期、燦爛綻放', sub: '終於輪到你發光了', g: 'linear-gradient(145deg,#780858 0%,#C83088 45%,#F870B0 100%)' },
-  { label: '沉澱期、向內整理', sub: '需要一點安靜和空間', g: 'linear-gradient(145deg,#203040 0%,#405060 45%,#8090A0 100%)' },
-  { label: '重塑期、想要全新開始', sub: '把舊的清空，換新的自己', g: 'linear-gradient(145deg,#183848 0%,#2878A8 45%,#70C0D8 100%)' }]
+  { label: '打地基、扎實累積', sub: '慢，但每一步都算數', img: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80', g: 'linear-gradient(145deg,#282018 0%,#504030 45%,#907060 100%)' },
+  { label: '開花期、燦爛綻放', sub: '終於輪到你發光了', img: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80', g: 'linear-gradient(145deg,#780858 0%,#C83088 45%,#F870B0 100%)' },
+  { label: '沉澱期、向內整理', sub: '需要一點安靜和空間', img: 'https://images.unsplash.com/photo-1502790671504-542ad42d5189?w=800&q=80', g: 'linear-gradient(145deg,#203040 0%,#405060 45%,#8090A0 100%)' },
+  { label: '重塑期、想要全新開始', sub: '把舊的清空，換新的自己', img: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?w=800&q=80', g: 'linear-gradient(145deg,#183848 0%,#2878A8 45%,#70C0D8 100%)' }]
 },
 { id: 5, eyebrow: 'QUESTION 05', text: '你希望走進家門時，\n第一秒感覺到什麼？',
   options: [
-  { label: '「我回來了」的安心', sub: '家的溫度讓你放下', g: 'linear-gradient(145deg,#402A10 0%,#805020 45%,#C89060 100%)' },
-  { label: '「哇！」的驚喜感', sub: '每次走進都有新發現', g: 'linear-gradient(145deg,#201880 0%,#5030C8 45%,#9060F8 100%)' },
-  { label: '「呼～」的放鬆', sub: '身體先於大腦的解壓', g: 'linear-gradient(145deg,#184830 0%,#308858 45%,#70C890 100%)' },
-  { label: '「這就是我」的個性表達', sub: '家是你最誠實的自白', g: 'linear-gradient(145deg,#101018 0%,#202030 45%,#484858 100%)' }]
+  { label: '「我回來了」的安心', sub: '家的溫度讓你放下', img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80', g: 'linear-gradient(145deg,#402A10 0%,#805020 45%,#C89060 100%)' },
+  { label: '「哇！」的驚喜感', sub: '每次走進都有新發現', img: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=800&q=80', g: 'linear-gradient(145deg,#201880 0%,#5030C8 45%,#9060F8 100%)' },
+  { label: '「呼～」的放鬆', sub: '身體先於大腦的解壓', img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80', g: 'linear-gradient(145deg,#184830 0%,#308858 45%,#70C890 100%)' },
+  { label: '「這就是我」的個性表達', sub: '家是你最誠實的自白', img: 'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=800&q=80', g: 'linear-gradient(145deg,#101018 0%,#202030 45%,#484858 100%)' }]
 }];
 
-
 const SCORE_MAP = [
-[['工匠', '理性', '未來'], ['藝術', '文青', '東方'], ['清新', '熱帶', '童心'], ['感受', '純粹', '藝術']],
-[['工匠', '東方', '理性'], ['熱帶', '童心', '未來'], ['清新', '感受', '純粹'], ['感受', '藝術', '文青']],
-[['工匠', '未來', '藝術'], ['熱帶', '童心', '未來'], ['感受', '文青', '純粹'], ['清新', '童心', '東方']],
-[['工匠', '理性', '東方'], ['熱帶', '藝術', '童心'], ['感受', '純粹', '文青'], ['未來', '清新', '藝術']],
-[['感受', '清新', '東方'], ['熱帶', '未來', '藝術'], ['純粹', '文青', '清新'], ['工匠', '童心', '理性']]];
+[['工匠','理性','未來'], ['藝術','文青','東方'], ['清新','熱帶','感受'], ['感受','純粹','藝術']],
+[['工匠','東方','理性'], ['熱帶','藝術','未來'], ['清新','感受','純粹'], ['感受','藝術','文青']],
+[['工匠','未來','藝術'], ['熱帶','未來','感受'], ['感受','文青','純粹'], ['清新','感受','東方']],
+[['工匠','理性','東方'], ['熱帶','藝術','文青'], ['感受','純粹','文青'], ['未來','清新','藝術']],
+[['感受','清新','東方'], ['熱帶','未來','藝術'], ['純粹','文青','清新'], ['工匠','藝術','理性']]];
 
-const TYPE_TO_RESULT = { '感受': 'introvert_sensitive', '文青': 'introvert_sensitive', '工匠': 'steady_craftsman', '純粹': 'pure_poetic', '熱帶': 'tropical_vibrant', '清新': 'fresh_healing', '藝術': 'artistic_soul', '童心': 'childlike_dreamer', '理性': 'rational_minimalist', '東方': 'oriental_elegant', '未來': 'future_explorer' };
-const PRIORITY = ['感受', '純粹', '藝術', '清新', '文青', '工匠', '東方', '熱帶', '童心', '未來', '理性'];
+const TYPE_TO_RESULT = { '感受':'introvert_sensitive','文青':'introvert_sensitive','工匠':'steady_craftsman','純粹':'pure_poetic','熱帶':'tropical_vibrant','清新':'fresh_healing','藝術':'artistic_soul','理性':'rational_minimalist','東方':'oriental_elegant','未來':'future_explorer' };
+const PRIORITY = ['感受','純粹','藝術','清新','文青','工匠','東方','熱帶','未來','理性'];
 
-const RESULTS = {
-  introvert_sensitive: { key: 'introvert_sensitive', name: '內斂感受型', mainSeries: '文青風系列', tagline: '不是每一種生活都要很大聲，\n有些美好，適合慢慢發生。', desc: '你最近在意的，不是更多刺激，而是剛剛好的節奏、留白與呼吸感。這類型的牆面不會搶話，卻能默默把空間氣氛整理得很舒服。', g: 'linear-gradient(145deg,#6A8860 0%,#A09870 35%,#C8B888 60%,#E0D8C0 100%)', accent: '#8BA870', ext: ['清新花草系列', '畫作系列', '大理石紋系列'], url: 'https://www.syideashop.com/categories/文青風系列' },
-  steady_craftsman: { key: 'steady_craftsman', name: '沉穩工匠型', mainSeries: '工業風系列', tagline: '真正的質感，\n是時間磨出來的。', desc: '你正在打地基的階段，對細節很講究、對虛華不耐煩。你需要的牆面有份量、有紋理、經得起每天注視，像老朋友一樣穩定地存在著。', g: 'linear-gradient(145deg,#1E1E28 0%,#383848 35%,#585868 60%,#807870 100%)', accent: '#888898', ext: ['大理石紋系列', '3D 立體畫系列', '幾何系列'], url: 'https://www.syideashop.com/categories/工業風系列' },
-  pure_poetic: { key: 'pure_poetic', name: '純粹詩意型', mainSeries: '大理石紋系列', tagline: '留白，\n是給好東西的舞台。', desc: '你懂得「少即是多」的力量。不需要很多，但每一樣都要剛剛好。這類型的牆面不炫技、不喧嘩，卻有一種安靜的高級感。', g: 'linear-gradient(145deg,#E8E0D4 0%,#D0C8B8 35%,#C0B8A8 60%,#E4DCCC 100%)', accent: '#A89880', ext: ['文青風系列', '幾何系列', '畫作系列'], url: 'https://www.syideashop.com/categories/大理石紋系列' },
-  tropical_vibrant: { key: 'tropical_vibrant', name: '熱帶奔放型', mainSeries: '熱帶花草系列', tagline: '把生活過得\n像盛夏一樣鮮明。', desc: '你正處於人生的旺盛期，渴望被熱烈的色彩包圍。你不怕大膽，你怕的是無聊。這類型的牆面會讓你每天早上起床都覺得：對，這就是我。', g: 'linear-gradient(145deg,#1A5028 0%,#38881E 35%,#88C820 55%,#D06020 100%)', accent: '#509030', ext: ['清新花草系列', '畫作系列', '兒童系列'], url: 'https://www.syideashop.com/categories/熱帶花草系列' },
-  fresh_healing: { key: 'fresh_healing', name: '清新療癒型', mainSeries: '清新花草系列', tagline: '好好呼吸，\n就是一種生活美學。', desc: '你最近需要的是「喘口氣」。這類型的牆面像一扇開著的窗，讓綠意、陽光、一點點風，很自然地流進你的生活節奏裡。', g: 'linear-gradient(145deg,#70B898 0%,#A8D8B8 35%,#C8ECD8 60%,#E4F4EC 100%)', accent: '#5AA880', ext: ['文青風系列', '熱帶花草系列', '畫作系列'], url: 'https://www.syideashop.com/categories/清新花草系列' },
-  artistic_soul: { key: 'artistic_soul', name: '藝術靈魂型', mainSeries: '畫作系列', tagline: '你的家，\n是一幅還在完成中的畫。', desc: '你把生活當成創作。你選的不是壁布，是一整個故事的開場。這類型的牆面讓你家變成一個只屬於你的藝廊。', g: 'linear-gradient(145deg,#781838 0%,#C05828 35%,#D89838 60%,#E8C860 100%)', accent: '#C06030', ext: ['文青風系列', '大理石紋系列', '熱帶花草系列'], url: 'https://www.syideashop.com/categories/畫作系列' },
-  childlike_dreamer: { key: 'childlike_dreamer', name: '童心夢想型', mainSeries: '兒童系列', tagline: '長大不代表\n要放棄童話。', desc: '你最可愛的地方，是你始終記得怎麼玩、怎麼笑。這類型的牆面有一種魔法——讓每個走進這個空間的人，都放下一點點武裝。', g: 'linear-gradient(145deg,#E8A870 0%,#F090A8 35%,#C090D8 60%,#90C0F0 100%)', accent: '#C878A8', ext: ['清新花草系列', '畫作系列', '熱帶花草系列'], url: 'https://www.syideashop.com/categories/兒童系列' },
-  rational_minimalist: { key: 'rational_minimalist', name: '理性極簡型', mainSeries: '幾何系列', tagline: '秩序，\n是另一種溫柔。', desc: '你喜歡乾淨、清楚、不拖泥帶水。這類型的牆面用線條和比例說話，不用多餘的裝飾，卻能精準地表達你對生活的態度。', g: 'linear-gradient(145deg,#1E2850 0%,#384880 35%,#7080B8 60%,#D0D8F0 100%)', accent: '#4868A8', ext: ['大理石紋系列', '工業風系列', '3D 立體畫系列'], url: 'https://www.syideashop.com/categories/幾何系列' },
-  oriental_elegant: { key: 'oriental_elegant', name: '東方雅士型', mainSeries: '中式風格系列', tagline: '老派的氣度，\n從來不會過時。', desc: '你對美的判斷，帶著一種不動聲色的深度。這類型的牆面有時間感、有文化感，不跟著流行跑，卻永遠是房間裡最有底蘊的那一面。', g: 'linear-gradient(145deg,#201008 0%,#581808 35%,#985028 60%,#C88848 100%)', accent: '#A05828', ext: ['文青風系列', '大理石紋系列', '畫作系列'], url: 'https://www.syideashop.com/categories/中式風格系列' },
-  future_explorer: { key: 'future_explorer', name: '未來探索型', mainSeries: '3D 立體畫系列', tagline: '每面牆，\n都可以是一扇新的門。', desc: '你對「現在」不滿足，你永遠在想下一步。這類型的牆面用視覺把空間打開，讓一面平面的牆，變成通往另一個維度的入口。', g: 'linear-gradient(145deg,#100870 0%,#5020B0 35%,#A030A0 60%,#10A8D0 100%)', accent: '#6030C0', ext: ['幾何系列', '工業風系列', '畫作系列'], url: 'https://www.syideashop.com/categories/3d立體畫系列' }
+// ── REAL SYIDEASHOP IMAGES ────────────────────────────────────────────────────
+const SY_IMG = {
+  industrial: 'https://shoplineimg.com/595aeef16ef2d4b45b00354e/611629f3d21436002004bf18/800x.webp?source_format=jpg',
+  marble:     'https://shoplineimg.com/595aeef16ef2d4b45b00354e/60efcd077d0764001724a047/800x.webp?source_format=jpg',
+  literary:   'https://shoplineimg.com/595aeef16ef2d4b45b00354e/60efca072763010017dbc5c8/800x.webp?source_format=jpg',
+  artwork:    'https://shoplineimg.com/595aeef16ef2d4b45b00354e/60efce1d492169003b07107d/800x.webp?source_format=jpg',
+  tropical:   'https://shoplineimg.com/595aeef16ef2d4b45b00354e/694e35f6b1db3e9e3f07acd3/800x.webp?source_format=jpg',
+  botanical:  'https://shoplineimg.com/595aeef16ef2d4b45b00354e/60efb1392b64fd001a2acf56/800x.webp?source_format=jpg',
+  geometric:  'https://shoplineimg.com/595aeef16ef2d4b45b00354e/60efb1a59329ad002946d286/800x.webp?source_format=jpg',
+  oriental:   'https://shoplineimg.com/595aeef16ef2d4b45b00354e/61e0e3b3bdcd20001af2a116/800x.webp?source_format=jpg',
+  threed:     'https://shoplineimg.com/595aeef16ef2d4b45b00354e/611f70ec49131e001a56392a/800x.webp?source_format=jpg',
 };
 
+const RESULTS = {
+  introvert_sensitive: { name:'內斂感受型', mainSeries:'文青風系列', img: SY_IMG.literary, tagline:'不是每一種生活都要很大聲，\n有些美好，適合慢慢發生。', desc:'你最近在意的，不是更多刺激，而是剛剛好的節奏、留白與呼吸感。這類型的牆面不會搶話，卻能默默把空間氣氛整理得很舒服。', g:'linear-gradient(145deg,#6A8860 0%,#A09870 35%,#C8B888 60%,#E0D8C0 100%)', accent:'#8BA870', ext:['botanical','artwork','marble'], url:'https://www.syideashop.com/categories/文青風系列' },
+  steady_craftsman: { name:'沉穩工匠型', mainSeries:'工業風系列', img: SY_IMG.industrial, tagline:'真正的質感，\n是時間磨出來的。', desc:'你正在打地基的階段，對細節很講究、對虛華不耐煩。你需要的牆面有份量、有紋理、經得起每天注視，像老朋友一樣穩定地存在著。', g:'linear-gradient(145deg,#1E1E28 0%,#383848 35%,#585868 60%,#807870 100%)', accent:'#888898', ext:['marble','threed','geometric'], url:'https://www.syideashop.com/categories/工業風系列' },
+  pure_poetic: { name:'純粹詩意型', mainSeries:'大理石紋系列', img: SY_IMG.marble, tagline:'留白，\n是給好東西的舞台。', desc:'你懂得「少即是多」的力量。不需要很多，但每一樣都要剛剛好。這類型的牆面不炫技、不喧嘩，卻有一種安靜的高級感。', g:'linear-gradient(145deg,#E8E0D4 0%,#D0C8B8 35%,#C0B8A8 60%,#E4DCCC 100%)', accent:'#A89880', ext:['literary','geometric','artwork'], url:'https://www.syideashop.com/categories/大理石紋系列' },
+  tropical_vibrant: { name:'熱帶奔放型', mainSeries:'熱帶花草系列', img: SY_IMG.tropical, tagline:'把生活過得\n像盛夏一樣鮮明。', desc:'你正處於人生的旺盛期，渴望被熱烈的色彩包圍。你不怕大膽，你怕的是無聊。這類型的牆面會讓你每天早上起床都覺得：對，這就是我。', g:'linear-gradient(145deg,#1A5028 0%,#38881E 35%,#88C820 55%,#D06020 100%)', accent:'#509030', ext:['botanical','artwork','literary'], url:'https://www.syideashop.com/categories/熱帶花草系列' },
+  fresh_healing: { name:'清新療癒型', mainSeries:'清新花草系列', img: SY_IMG.botanical, tagline:'好好呼吸，\n就是一種生活美學。', desc:'你最近需要的是「喘口氣」。這類型的牆面像一扇開著的窗，讓綠意、陽光、一點點風，很自然地流進你的生活節奏裡。', g:'linear-gradient(145deg,#70B898 0%,#A8D8B8 35%,#C8ECD8 60%,#E4F4EC 100%)', accent:'#5AA880', ext:['literary','tropical','artwork'], url:'https://www.syideashop.com/categories/清新花草系列' },
+  artistic_soul: { name:'藝術靈魂型', mainSeries:'畫作系列', img: SY_IMG.artwork, tagline:'你的家，\n是一幅還在完成中的畫。', desc:'你把生活當成創作。你選的不是壁布，是一整個故事的開場。這類型的牆面讓你家變成一個只屬於你的藝廊。', g:'linear-gradient(145deg,#781838 0%,#C05828 35%,#D89838 60%,#E8C860 100%)', accent:'#C06030', ext:['literary','marble','tropical'], url:'https://www.syideashop.com/categories/畫作系列' },
+  rational_minimalist: { name:'理性極簡型', mainSeries:'幾何系列', img: SY_IMG.geometric, tagline:'秩序，\n是另一種溫柔。', desc:'你喜歡乾淨、清楚、不拖泥帶水。這類型的牆面用線條和比例說話，不用多餘的裝飾，卻能精準地表達你對生活的態度。', g:'linear-gradient(145deg,#1E2850 0%,#384880 35%,#7080B8 60%,#D0D8F0 100%)', accent:'#4868A8', ext:['marble','industrial','threed'], url:'https://www.syideashop.com/categories/幾何系列' },
+  oriental_elegant: { name:'東方雅士型', mainSeries:'中式風格系列', img: SY_IMG.oriental, tagline:'老派的氣度，\n從來不會過時。', desc:'你對美的判斷，帶著一種不動聲色的深度。這類型的牆面有時間感、有文化感，不跟著流行跑，卻永遠是房間裡最有底蘊的那一面。', g:'linear-gradient(145deg,#201008 0%,#581808 35%,#985028 60%,#C88848 100%)', accent:'#A05828', ext:['literary','marble','artwork'], url:'https://www.syideashop.com/categories/中式風格系列' },
+  future_explorer: { name:'未來探索型', mainSeries:'3D 立體畫系列', img: SY_IMG.threed, tagline:'每面牆，\n都可以是一扇新的門。', desc:'你對「現在」不滿足，你永遠在想下一步。這類型的牆面用視覺把空間打開，讓一面平面的牆，變成通往另一個維度的入口。', g:'linear-gradient(145deg,#100870 0%,#5020B0 35%,#A030A0 60%,#10A8D0 100%)', accent:'#6030C0', ext:['geometric','industrial','artwork'], url:'https://www.syideashop.com/categories/3d立體畫系列' }
+};
+
+// THEMES — 9 series (kids removed), each with real shopline image
 const THEMES = [
-{ key: 'industrial', name: '工業風系列', nameEn: 'INDUSTRIAL', mood: '帶點粗獷，帶點哲學', g: 'linear-gradient(145deg,#1E1E28 0%,#3A3A50 45%,#8C7C6C 100%)', url: 'https://www.syideashop.com/categories/工業風系列' },
-{ key: 'marble', name: '大理石紋系列', nameEn: 'MARBLE', mood: '安靜的高級感', g: 'linear-gradient(145deg,#EDE8E0 0%,#C8BEB0 45%,#D8D0C4 100%)', url: 'https://www.syideashop.com/categories/大理石紋系列' },
-{ key: 'literary', name: '文青風系列', nameEn: 'LITERARY', mood: '有溫度的留白', g: 'linear-gradient(145deg,#6A8860 0%,#A09870 45%,#D0C8A8 100%)', url: 'https://www.syideashop.com/categories/文青風系列' },
-{ key: 'kids', name: '兒童系列', nameEn: 'KIDS', mood: '長大不代表失去魔法', g: 'linear-gradient(145deg,#E8A870 0%,#F090A8 45%,#90C0F0 100%)', url: 'https://www.syideashop.com/categories/兒童系列' },
-{ key: 'artwork', name: '畫作系列', nameEn: 'ARTWORK', mood: '家是最私密的藝廊', g: 'linear-gradient(145deg,#781838 0%,#C05828 45%,#D4A84B 100%)', url: 'https://www.syideashop.com/categories/畫作系列' },
-{ key: 'tropical', name: '熱帶花草系列', nameEn: 'TROPICAL', mood: '讓生命力穿過牆', g: 'linear-gradient(145deg,#1A5028 0%,#38881E 45%,#C86820 100%)', url: 'https://www.syideashop.com/categories/熱帶花草系列' },
-{ key: 'botanical', name: '清新花草系列', nameEn: 'BOTANICAL', mood: '好好呼吸的空間', g: 'linear-gradient(145deg,#70B898 0%,#A8D8B8 45%,#E0F4EC 100%)', url: 'https://www.syideashop.com/categories/清新花草系列' },
-{ key: 'geometric', name: '幾何系列', nameEn: 'GEOMETRIC', mood: '秩序，是另一種美', g: 'linear-gradient(145deg,#1E2850 0%,#384880 45%,#D0D8F0 100%)', url: 'https://www.syideashop.com/categories/幾何系列' },
-{ key: 'oriental', name: '中式風格系列', nameEn: 'ORIENTAL', mood: '底蘊，不跟著流行走', g: 'linear-gradient(145deg,#201008 0%,#581808 45%,#C88848 100%)', url: 'https://www.syideashop.com/categories/中式風格系列' },
-{ key: '3dart', name: '3D 立體畫系列', nameEn: '3D ART', mood: '打開空間的另一個維度', g: 'linear-gradient(145deg,#100870 0%,#5020B0 45%,#10A8D0 100%)', url: 'https://www.syideashop.com/categories/3d立體畫系列' }];
+{ key:'industrial', name:'工業風系列', nameEn:'INDUSTRIAL', mood:'帶點粗獷，帶點哲學', img: SY_IMG.industrial, url:'https://www.syideashop.com/categories/工業風系列' },
+{ key:'marble', name:'大理石紋系列', nameEn:'MARBLE', mood:'安靜的高級感', img: SY_IMG.marble, url:'https://www.syideashop.com/categories/大理石紋系列' },
+{ key:'literary', name:'文青風系列', nameEn:'LITERARY', mood:'有溫度的留白', img: SY_IMG.literary, url:'https://www.syideashop.com/categories/文青風系列' },
+{ key:'artwork', name:'畫作系列', nameEn:'ARTWORK', mood:'家是最私密的藝廊', img: SY_IMG.artwork, url:'https://www.syideashop.com/categories/畫作系列' },
+{ key:'tropical', name:'熱帶花草系列', nameEn:'TROPICAL', mood:'讓生命力穿過牆', img: SY_IMG.tropical, url:'https://www.syideashop.com/categories/熱帶花草系列' },
+{ key:'botanical', name:'清新花草系列', nameEn:'BOTANICAL', mood:'好好呼吸的空間', img: SY_IMG.botanical, url:'https://www.syideashop.com/categories/清新花草系列' },
+{ key:'geometric', name:'幾何系列', nameEn:'GEOMETRIC', mood:'秩序，是另一種美', img: SY_IMG.geometric, url:'https://www.syideashop.com/categories/幾何系列' },
+{ key:'oriental', name:'中式風格系列', nameEn:'ORIENTAL', mood:'底蘊，不跟著流行走', img: SY_IMG.oriental, url:'https://www.syideashop.com/categories/中式風格系列' },
+{ key:'threed', name:'3D 立體畫系列', nameEn:'3D ART', mood:'打開空間的另一個維度', img: SY_IMG.threed, url:'https://www.syideashop.com/categories/3d立體畫系列' }];
 
+const THEME_BY_KEY = THEMES.reduce((a,t) => (a[t.key]=t, a), {});
 
-const SIM_STATS = { total: 2431, counts: { introvert_sensitive: 510, steady_craftsman: 280, pure_poetic: 190, tropical_vibrant: 310, fresh_healing: 245, artistic_soul: 180, childlike_dreamer: 120, rational_minimalist: 200, oriental_elegant: 90, future_explorer: 306 } };
+const SIM_STATS = { total: 247, counts: { introvert_sensitive:62, steady_craftsman:34, pure_poetic:24, tropical_vibrant:38, fresh_healing:30, artistic_soul:22, rational_minimalist:25, oriental_elegant:11, future_explorer:38 } };
 
 function calcResult(answers) {
-  const s = {};PRIORITY.forEach((t) => s[t] = 0);
-  answers.forEach((ai, qi) => SCORE_MAP[qi][ai].forEach((t) => s[t]++));
-  let best = PRIORITY[0],top = -1;
-  for (const t of PRIORITY) if (s[t] > top) {top = s[t];best = t;}
+  const s = {}; PRIORITY.forEach(t => s[t] = 0);
+  answers.forEach((ai, qi) => SCORE_MAP[qi][ai].forEach(t => s[t]++));
+  let best = PRIORITY[0], top = -1;
+  for (const t of PRIORITY) if (s[t] > top) { top = s[t]; best = t; }
   return TYPE_TO_RESULT[best];
 }
 
-// ── SHARED UI ─────────────────────────────────────────────────────────────────
-
-function Btn({ children, onClick, variant = 'dark', size = 'md', style: sx }) {
-  const sz = { sm: { padding: '8px 20px', fontSize: '13px' }, md: { padding: '12px 28px', fontSize: '14px' }, lg: { padding: '15px 36px', fontSize: '15px' } };
-  const v = {
-    dark: { background: '#1C1A2E', color: '#fff', border: 'none' },
-    ghost: { background: 'rgba(28,26,46,.07)', color: '#1C1A2E', border: '1.5px solid rgba(28,26,46,.15)' },
-    outline: { background: 'transparent', color: '#1C1A2E', border: '1.5px solid #1C1A2E' },
-    light: { background: 'rgba(255,255,255,.15)', color: '#fff', border: '1px solid rgba(255,255,255,.3)' },
-    white: { background: '#fff', color: '#1C1A2E', border: 'none' }
-  };
-  return <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '100px', cursor: 'pointer', fontFamily: 'var(--fl)', fontWeight: 500, letterSpacing: '.02em', transition: 'all .25s', ...sz[size], ...v[variant], ...sx }}>{children}</button>;
+// ── TWEAKS PANEL ─────────────────────────────────────────────────────────────
+function useTweaks(defaults) {
+  const [values, setValues] = useState(defaults);
+  const setTweak = useCallback((key, val) => {
+    setValues(prev => ({ ...prev, [key]: val }));
+    try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: val } }, '*'); } catch {}
+  }, []);
+  return [values, setTweak];
 }
 
-// ── NAV ───────────────────────────────────────────────────────────────────────
-function Nav({ onLogo }) {
-  return (
-    <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 28px', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,.06)', background: 'var(--nav-bg,rgba(28,26,46,.93))', opacity: "1" }}>
-      <button onClick={onLogo} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', fontFamily: 'var(--fl)', fontSize: '15px', fontWeight: 700, letterSpacing: '.06em' }}>SYIDEA</button>
-      <span style={{ color: 'rgba(255,255,255,.38)', fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase' }}>P-tex 主題式宣影布</span>
-    </nav>);
+function TweaksPanel({ title, children }) {
+  const [open, setOpen] = useState(false);
+  const dragRef = useRef(null);
+  const offsetRef = useRef({ x: 16, y: 16 });
+  const PAD = 16;
 
+  const clamp = useCallback(() => {
+    const p = dragRef.current; if (!p) return;
+    const w = p.offsetWidth, h = p.offsetHeight;
+    const maxR = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxB = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxR, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxB, Math.max(PAD, offsetRef.current.y)),
+    };
+    p.style.right = offsetRef.current.x + 'px';
+    p.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    clamp();
+    const ro = new ResizeObserver(clamp);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clamp]);
+
+  useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch {}
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    try { window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); } catch {}
+  };
+
+  const onDragStart = (e) => {
+    const p = dragRef.current; if (!p) return;
+    const r = p.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const sR = window.innerWidth - r.right;
+    const sB = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = { x: sR - (ev.clientX - sx), y: sB - (ev.clientY - sy) };
+      clamp();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+      <div className="twk-hd" onMouseDown={onDragStart}>
+        <b>{title}</b>
+        <button className="twk-x" onMouseDown={(e) => e.stopPropagation()} onClick={dismiss}>✕</button>
+      </div>
+      <div className="twk-body">{children}</div>
+    </div>
+  );
+}
+
+function TweakSection({ label }) { return <div className="twk-sect">{label}</div>; }
+function TweakSegmented({ label, value, options, onChange }) {
+  const opts = options.map(o => typeof o === 'object' ? o : { value: o, label: o });
+  const idx = Math.max(0, opts.findIndex(o => o.value === value));
+  const n = opts.length;
+  return (
+    <div className="twk-row">
+      <div className="twk-lbl"><span>{label}</span><span className="twk-val">{opts[idx]?.label}</span></div>
+      <div className="twk-seg" role="radiogroup">
+        <div className="twk-seg-thumb" style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`, width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map(o => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value} onClick={() => onChange(o.value)}>{o.label}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── SHARED UI ─────────────────────────────────────────────────────────────────
+function Btn({ children, onClick, variant='dark', size='md', style: sx }) {
+  const sz = { sm:{padding:'8px 20px',fontSize:'13px'}, md:{padding:'12px 28px',fontSize:'14px'}, lg:{padding:'15px 36px',fontSize:'15px'} };
+  const v = {
+    dark: { background:'#1C1A2E', color:'#fff', border:'none' },
+    ghost: { background:'rgba(28,26,46,.07)', color:'#1C1A2E', border:'1.5px solid rgba(28,26,46,.15)' },
+    outline: { background:'transparent', color:'#1C1A2E', border:'1.5px solid #1C1A2E' },
+    light: { background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.3)' },
+    white: { background:'#fff', color:'#1C1A2E', border:'none' }
+  };
+  return <button onClick={onClick} style={{ display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'7px',borderRadius:'100px',cursor:'pointer',fontFamily:'var(--fl)',fontWeight:500,letterSpacing:'.02em',transition:'all .25s', ...sz[size], ...v[variant], ...sx }}>{children}</button>;
+}
+
+// ── NAV ── (透明 + SYIDEA 上 / 副標下,無灰底) ────────────────────────────────
+function Nav({ onLogo, dark = false }) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const txt = dark ? '#fff' : '#1C1A2E';
+  const sub = dark ? 'rgba(255,255,255,.55)' : 'rgba(28,26,46,.55)';
+  return (
+    <nav style={{
+      position:'fixed',top:0,left:0,right:0,zIndex:200,
+      display:'flex',alignItems:'flex-start',justifyContent:'space-between',
+      padding:'18px 28px',
+      background: scrolled ? 'rgba(244,240,232,.85)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(14px) saturate(160%)' : 'none',
+      WebkitBackdropFilter: scrolled ? 'blur(14px) saturate(160%)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(28,26,46,.06)' : '1px solid transparent',
+      transition: 'background .35s ease, border-color .35s ease, backdrop-filter .35s ease',
+      pointerEvents:'none'
+    }}>
+      <button onClick={onLogo} style={{ pointerEvents:'auto',display:'flex',flexDirection:'column',alignItems:'flex-start',background:'none',border:'none',cursor:'pointer',color:txt,fontFamily:'var(--fl)',padding:0 }}>
+        <span style={{ fontSize:'15px',fontWeight:700,letterSpacing:'.06em' }}>SYIDEA</span>
+        <span style={{ fontSize:'10px',letterSpacing:'.14em',color:sub,textTransform:'uppercase',marginTop:'3px',fontWeight:400 }}>Interactive Theme Wall Quiz · P-tex 主題式宣影布</span>
+      </button>
+    </nav>
+  );
 }
 
 // ── LANDING ───────────────────────────────────────────────────────────────────
 function Landing({ onStart }) {
   const [vis, setVis] = useState(false);
   const themesRef = useRef(null);
-  useEffect(() => {setTimeout(() => setVis(true), 80);}, []);
+  useEffect(() => { setTimeout(() => setVis(true), 80); }, []);
 
   return (
     <div>
-      {/* Hero */}
-      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', padding: '120px 28px 80px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'var(--hero-grad,linear-gradient(-45deg,#D8CCE8,#B8D0EC,#C4E4D8,#ECD8C4,#D8C4E4))', backgroundSize: '400% 400%', animation: 'heroGrad var(--hero-dur,14s) ease infinite' }} />
+      <section style={{ minHeight:'100vh',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'flex-start',padding:'140px 28px 80px',position:'relative',overflow:'hidden' }}>
+        <div style={{ position:'absolute',inset:0,background:'var(--hero-grad,linear-gradient(-45deg,#D8CCE8,#B8D0EC,#C4E4D8,#ECD8C4,#D8C4E4))',backgroundSize:'400% 400%',animation:'heroGrad var(--hero-dur,14s) ease infinite' }} />
+        <div style={{ position:'absolute',right:'-8vw',top:'18%',width:'clamp(180px,28vw,420px)',height:'clamp(180px,28vw,420px)',borderRadius:'50%',background:'radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), rgba(255,255,255,0) 70%)',filter:'blur(8px)',animation:'drift 16s ease-in-out infinite',zIndex:1,pointerEvents:'none' }} />
+        <div style={{ position:'absolute',left:'10%',bottom:'12%',width:'clamp(120px,18vw,260px)',height:'clamp(120px,18vw,260px)',borderRadius:'50%',background:'radial-gradient(circle at 60% 40%, rgba(255,255,255,.4), rgba(255,255,255,0) 70%)',filter:'blur(6px)',animation:'shimmer 9s ease-in-out infinite',zIndex:1,pointerEvents:'none' }} />
         <div className="grain" />
-        <div style={{ position: 'relative', zIndex: 3, maxWidth: '580px', opacity: vis ? 1 : 0, transform: vis ? 'none' : 'translateY(28px)', transition: 'all var(--fade-dur,.9s) cubic-bezier(.16,1,.3,1)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(28,26,46,.09)', borderRadius: '100px', marginBottom: '32px', fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.14em', color: 'rgba(28,26,46,.55)', textTransform: 'uppercase', padding: "1px 14px 6px" }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent,#7B8FC8)', display: 'inline-block' }} />
-            Interactive Theme Wall Quiz · P-tex 主題式宣影布
-          </div>
-          <h1 style={{ fontFamily: 'var(--fd)', lineHeight: 1.12, color: '#1C1A2E', margin: '0 0 24px', fontWeight: 600, fontSize: "76px" }}>選一面牆，<br />測出你現在的<br />人生狀態。</h1>
-          <p style={{ fontFamily: 'var(--fb)', fontSize: '16px', lineHeight: 1.85, color: 'rgba(28,26,46,.6)', margin: '0 0 44px' }}>有些人選的是風格，<br />有些人選到的，其實是此刻最需要的生活狀態。</p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ position:'relative',zIndex:3,maxWidth:'620px',opacity:vis?1:0,transform:vis?'none':'translateY(28px)',transition:'all var(--fade-dur,.9s) cubic-bezier(.16,1,.3,1)' }}>
+          <h1 style={{ fontFamily:'var(--fd)',lineHeight:1.12,color:'#1C1A2E',margin:'0 0 24px',fontWeight:600,fontSize:'clamp(40px,8vw,76px)' }}>
+            選一面牆，<br/>
+            測出你現在的<br/>
+            <span style={{
+              background: 'linear-gradient(135deg, var(--accent,#7B8FC8) 0%, #C878A8 50%, var(--accent,#7B8FC8) 100%)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontStyle: 'italic',
+              animation: 'textShine 6s ease-in-out infinite',
+            }}>人生狀態</span>。
+          </h1>
+          <p style={{ fontFamily:'var(--fb)',fontSize:'16px',lineHeight:1.85,color:'rgba(28,26,46,.6)',margin:'0 0 44px' }}>有些人選的是風格，<br/>有些人選到的，其實是此刻最需要的生活狀態。</p>
+          <div style={{ display:'flex',gap:'12px',flexWrap:'wrap' }}>
             <Btn onClick={onStart} size="lg" variant="dark">
               開始測驗
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </Btn>
-            <Btn onClick={() => themesRef.current?.scrollIntoView({ behavior: 'smooth' })} size="lg" variant="ghost">先看 10 種主題 ↓</Btn>
+            <Btn onClick={() => themesRef.current?.scrollIntoView({behavior:'smooth'})} size="lg" variant="ghost">先看 9 種主題 ↓</Btn>
           </div>
         </div>
       </section>
 
-      {/* Theme grid */}
-      <section ref={themesRef} style={{ padding: '80px 28px 100px', background: '#1C1A2E' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '44px' }}>
-            <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.16em', color: 'rgba(255,255,255,.3)', marginBottom: '14px', textTransform: 'uppercase' }}>10 Themes</div>
-            <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(26px,5vw,46px)', color: '#fff', margin: '0 0 10px', lineHeight: 1.2, fontWeight: 600 }}>10 種主題，10 種生活狀態</h2>
-            <p style={{ fontFamily: 'var(--fb)', fontSize: '14px', color: 'rgba(255,255,255,.4)' }}>不想測驗？直接挑你喜歡的開始看</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(155px,1fr))', gap: '10px' }}>
-            {THEMES.map((t) => <ThemeCard key={t.key} theme={t} onStart={onStart} />)}
-          </div>
+      <section ref={themesRef} style={{ padding:'100px 0',background:'#1C1A2E',overflow:'hidden' }}>
+        <div style={{ maxWidth:'1400px',margin:'0 auto',padding:'0 28px',marginBottom:'44px' }}>
+          <div style={{ fontFamily:'var(--fl)',fontSize:'10px',letterSpacing:'.16em',color:'rgba(255,255,255,.3)',marginBottom:'14px',textTransform:'uppercase' }}>9 Themes</div>
+          <h2 style={{ fontFamily:'var(--fd)',fontSize:'clamp(26px,5vw,46px)',color:'#fff',margin:'0 0 10px',lineHeight:1.2,fontWeight:600 }}>9 種主題，9 種生活狀態</h2>
+          <p style={{ fontFamily:'var(--fb)',fontSize:'14px',color:'rgba(255,255,255,.4)' }}>不想測驗？直接挑你喜歡的開始看 →</p>
         </div>
+        <ThemeCarousel onStart={onStart}/>
       </section>
-    </div>);
-
+    </div>
+  );
 }
 
-function ThemeCard({ theme, onStart }) {
+// ── HORIZONTAL CAROUSEL ───────────────────────────────────────────────────────
+function ThemeCarousel({ onStart }) {
+  const trackRef = useRef(null);
+  const [canL, setCanL] = useState(false);
+  const [canR, setCanR] = useState(true);
+
+  const updateArrows = useCallback(() => {
+    const el = trackRef.current; if (!el) return;
+    setCanL(el.scrollLeft > 8);
+    setCanR(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    const el = trackRef.current; if (!el) return;
+    updateArrows();
+    el.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      el.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
+  }, [updateArrows]);
+
+  const scrollBy = (dir) => {
+    const el = trackRef.current; if (!el) return;
+    const card = el.querySelector('[data-card]');
+    const w = card ? card.offsetWidth + 14 : 280;
+    el.scrollBy({ left: dir * w * 2, behavior: 'smooth' });
+  };
+
+  // drag-to-scroll for desktop
+  useEffect(() => {
+    const el = trackRef.current; if (!el) return;
+    let isDown = false, startX, scrollLeft;
+    const down = (e) => { isDown = true; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; el.style.cursor = 'grabbing'; };
+    const leave = () => { isDown = false; el.style.cursor = 'grab'; };
+    const move = (e) => { if (!isDown) return; e.preventDefault(); el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX); };
+    el.style.cursor = 'grab';
+    el.addEventListener('mousedown', down);
+    el.addEventListener('mouseleave', leave);
+    el.addEventListener('mouseup', leave);
+    el.addEventListener('mousemove', move);
+    return () => {
+      el.removeEventListener('mousedown', down);
+      el.removeEventListener('mouseleave', leave);
+      el.removeEventListener('mouseup', leave);
+      el.removeEventListener('mousemove', move);
+    };
+  }, []);
+
+  return (
+    <div style={{ position:'relative' }}>
+      {/* fade edges */}
+      <div style={{ position:'absolute',left:0,top:0,bottom:0,width:'80px',background:'linear-gradient(to right,#1C1A2E,transparent)',zIndex:5,pointerEvents:'none',opacity:canL?1:0,transition:'opacity .3s' }} />
+      <div style={{ position:'absolute',right:0,top:0,bottom:0,width:'80px',background:'linear-gradient(to left,#1C1A2E,transparent)',zIndex:5,pointerEvents:'none',opacity:canR?1:0,transition:'opacity .3s' }} />
+
+      <div ref={trackRef} className="carousel-track" style={{ display:'flex',gap:'14px',overflowX:'auto',scrollBehavior:'smooth',padding:'0 28px',scrollSnapType:'x mandatory' }}>
+        {THEMES.map((t, i) => (
+          <div key={t.key} data-card style={{ flex:'0 0 auto',scrollSnapAlign:'start' }}>
+            <ThemeCard theme={t} idx={i} onStart={onStart}/>
+          </div>
+        ))}
+        <div style={{ flex:'0 0 28px' }} />
+      </div>
+
+      {/* nav arrows */}
+      <div style={{ display:'flex',justifyContent:'center',gap:'10px',marginTop:'28px',padding:'0 28px' }}>
+        <button onClick={() => scrollBy(-1)} disabled={!canL} style={{ width:'44px',height:'44px',borderRadius:'50%',border:'1px solid rgba(255,255,255,.2)',background:'transparent',color:'#fff',cursor:canL?'pointer':'not-allowed',opacity:canL?1:.3,transition:'all .25s',display:'flex',alignItems:'center',justifyContent:'center' }} aria-label="prev">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        <button onClick={() => scrollBy(1)} disabled={!canR} style={{ width:'44px',height:'44px',borderRadius:'50%',border:'1px solid rgba(255,255,255,.2)',background:'transparent',color:'#fff',cursor:canR?'pointer':'not-allowed',opacity:canR?1:.3,transition:'all .25s',display:'flex',alignItems:'center',justifyContent:'center' }} aria-label="next">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ThemeCard({ theme, idx, onStart }) {
   const [hov, setHov] = useState(false);
+  const [vis, setVis] = useState(false);
+  useEffect(() => { setTimeout(() => setVis(true), 100 + idx * 50); }, [idx]);
   return (
     <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-    onClick={() => window.open(theme.url, '_blank')}
-    style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', aspectRatio: '3/4', cursor: 'pointer', background: theme.g, transform: hov ? 'translateY(-5px) scale(1.02)' : 'none', transition: 'transform .35s cubic-bezier(.16,1,.3,1)', boxShadow: hov ? '0 18px 44px rgba(0,0,0,.35)' : '0 3px 12px rgba(0,0,0,.2)' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(28,26,46,.85) 0%,rgba(28,26,46,.05) 55%,transparent 100%)' }} />
-      {hov && <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 3 }}>
-        <button onClick={(e) => {e.stopPropagation();onStart();}} style={{ background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,.28)', borderRadius: '100px', color: '#fff', fontFamily: 'var(--fb)', fontSize: '11px', padding: '5px 11px', cursor: 'pointer' }}>測測我 →</button>
+         onClick={() => window.open(theme.url,'_blank')}
+         style={{ position:'relative',width:'260px',aspectRatio:'3/4',borderRadius:'14px',overflow:'hidden',cursor:'pointer',background:'#2a2840',transform:vis ? (hov?'translateY(-5px) scale(1.02)':'none') : 'translateY(20px)',opacity:vis?1:0,transition:'transform .35s cubic-bezier(.16,1,.3,1),opacity .5s ease',boxShadow:hov?'0 18px 44px rgba(0,0,0,.45)':'0 3px 12px rgba(0,0,0,.3)' }}>
+      <img src={theme.img} alt={theme.name} loading="lazy"
+           style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transition:'transform .5s ease',transform:hov?'scale(1.08)':'scale(1)' }} />
+      <div style={{ position:'absolute',inset:0,background:'linear-gradient(to top,rgba(28,26,46,.92) 0%,rgba(28,26,46,.15) 50%,rgba(28,26,46,.05) 100%)' }} />
+      {hov && <div style={{ position:'absolute',top:'12px',right:'12px',zIndex:3 }}>
+        <button onClick={(e) => { e.stopPropagation(); onStart(); }} style={{ background:'rgba(255,255,255,.2)',backdropFilter:'blur(8px)',border:'1px solid rgba(255,255,255,.3)',borderRadius:'100px',color:'#fff',fontFamily:'var(--fb)',fontSize:'11px',padding:'6px 12px',cursor:'pointer',fontWeight:500 }}>測測我 →</button>
       </div>}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 14px 14px', zIndex: 2 }}>
-        <div style={{ fontFamily: 'var(--fl)', fontSize: '9px', letterSpacing: '.14em', color: 'rgba(255,255,255,.45)', marginBottom: '3px' }}>{theme.nameEn}</div>
-        <div style={{ fontFamily: 'var(--fd)', fontSize: '14px', color: '#fff', fontWeight: 600, marginBottom: '3px' }}>{theme.name}</div>
-        <div style={{ fontFamily: 'var(--fb)', fontSize: '11px', color: 'rgba(255,255,255,.55)', lineHeight: 1.4 }}>{theme.mood}</div>
+      <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'22px 18px 18px',zIndex:2 }}>
+        <div style={{ fontFamily:'var(--fl)',fontSize:'10px',letterSpacing:'.18em',color:'rgba(255,255,255,.55)',marginBottom:'6px',fontWeight:500 }}>{theme.nameEn}</div>
+        <div style={{ fontFamily:'var(--fd)',fontSize:'18px',color:'#fff',fontWeight:700,marginBottom:'5px' }}>{theme.name}</div>
+        <div style={{ fontFamily:'var(--fb)',fontSize:'12px',color:'rgba(255,255,255,.7)',lineHeight:1.5 }}>{theme.mood}</div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
 // ── QUIZ ──────────────────────────────────────────────────────────────────────
@@ -284,237 +542,490 @@ function Quiz({ onDone, onBack }) {
       const next = [...answers, i];
       setVis(false);
       setTimeout(() => {
-        if (qi < 4) {setAnswers(next);setQi(qi + 1);setSel(null);setVis(true);} else
-        {onDone(next);}
+        if (qi < 4) { setAnswers(next); setQi(qi + 1); setSel(null); setVis(true); }
+        else { onDone(next); }
       }, 350);
     }, 480);
   };
 
   const back = () => {
-    if (qi === 0) {onBack();return;}
+    if (qi === 0) { onBack(); return; }
     setVis(false);
-    setTimeout(() => {setQi(qi - 1);setAnswers(answers.slice(0, -1));setSel(null);setVis(true);}, 300);
+    setTimeout(() => { setQi(qi - 1); setAnswers(answers.slice(0, -1)); setSel(null); setVis(true); }, 300);
   };
 
+  const progress = (qi + 1) / 5 * 100;
+
   return (
-    <div style={{ minHeight: '100vh', background: '#F4F0E8', display: 'flex', flexDirection: 'column' }}>
-      {/* Top bar */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: 'rgba(28,26,46,.93)', backdropFilter: 'blur(12px)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px' }}>
-          <button onClick={back} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.55)', fontFamily: 'var(--fl)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    <div style={{ minHeight:'100vh',background:'var(--page-bg,#F4F0E8)',display:'flex',flexDirection:'column' }}>
+      {/* Top bar — 加強進度條的視覺存在感 */}
+      <div style={{ position:'fixed',top:0,left:0,right:0,zIndex:200,background:'rgba(244,240,232,.92)',backdropFilter:'blur(12px)',borderBottom:'1px solid rgba(28,26,46,.08)' }}>
+        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 28px' }}>
+          <button onClick={back} style={{ background:'none',border:'none',cursor:'pointer',color:'rgba(28,26,46,.6)',fontFamily:'var(--fl)',fontSize:'13px',display:'flex',alignItems:'center',gap:'5px',fontWeight:500 }}>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
             返回
           </button>
-          <span style={{ fontFamily: 'var(--fl)', fontSize: '13px', color: 'rgba(255,255,255,.45)', letterSpacing: '.08em' }}>{String(qi + 1).padStart(2, '0')} / 05</span>
+          <div style={{ display:'flex',alignItems:'center',gap:'14px' }}>
+            <span style={{ fontFamily:'var(--fl)',fontSize:'12px',color:'rgba(28,26,46,.55)',letterSpacing:'.08em',fontVariantNumeric:'tabular-nums' }}>
+              {String(qi+1).padStart(2,'0')} <span style={{opacity:.4}}>/ 05</span>
+            </span>
+          </div>
         </div>
-        <div style={{ height: '2px', background: 'rgba(255,255,255,.1)' }}>
-          <div style={{ height: '100%', background: 'var(--accent,#7B8FC8)', width: `${qi / 5 * 100}%`, transition: 'width .5s ease' }} />
+        {/* 加粗的進度條 */}
+        <div style={{ height:'4px',background:'rgba(28,26,46,.07)',position:'relative' }}>
+          <div style={{ height:'100%',background:'var(--accent,#7B8FC8)',width:`${progress}%`,transition:'width .6s cubic-bezier(.16,1,.3,1)',boxShadow:'0 0 8px var(--accent,#7B8FC8)' }} />
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, paddingTop: '90px', paddingBottom: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: vis ? 1 : 0, transform: vis ? 'none' : 'translateY(12px)', transition: 'all .4s cubic-bezier(.16,1,.3,1)' }}>
-        <div style={{ width: '100%', maxWidth: '700px', padding: '0 20px' }}>
-          <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.18em', color: 'var(--accent,#7B8FC8)', marginBottom: '14px', textTransform: 'uppercase' }}>{q.eyebrow}</div>
-          <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(22px,4.5vw,38px)', color: '#1C1A2E', lineHeight: 1.38, margin: '0 0 36px', fontWeight: 600, whiteSpace: 'pre-line' }}>{q.text}</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
+      <div style={{ flex:1,paddingTop:'100px',paddingBottom:'60px',display:'flex',flexDirection:'column',alignItems:'center',opacity:vis?1:0,transform:vis?'none':'translateY(12px)',transition:'all var(--quiz-fade,.4s) cubic-bezier(.16,1,.3,1)' }}>
+        <div style={{ width:'100%',maxWidth:'780px',padding:'0 20px' }}>
+          <div style={{ fontFamily:'var(--fl)',fontSize:'10px',letterSpacing:'.18em',color:'var(--accent,#7B8FC8)',marginBottom:'14px',textTransform:'uppercase' }}>{q.eyebrow}</div>
+          <h2 style={{ fontFamily:'var(--fd)',fontSize:'clamp(22px,4.5vw,38px)',color:'#1C1A2E',lineHeight:1.38,margin:'0 0 36px',fontWeight:600,whiteSpace:'pre-line' }}>{q.text}</h2>
+          <div style={{ display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px' }}>
             {q.options.map((opt, i) => {
               const isSel = sel === i;
               return (
-                <div key={i} onClick={() => choose(i)} style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '3/4', cursor: 'pointer', background: opt.g, boxShadow: isSel ? `0 0 0 3px var(--accent,#7B8FC8),0 12px 32px rgba(28,26,46,.18)` : '0 3px 14px rgba(28,26,46,.1)', transform: isSel ? 'scale(.97)' : 'scale(1)', transition: 'all .3s cubic-bezier(.16,1,.3,1)', height: "250px", width: "300px" }}>
-                  <div style={{ position: 'absolute', inset: 0, background: "linear-gradient(to top, rgba(28, 26, 46, 0.82) 0%, rgba(28, 26, 46, 0.04) 58%, transparent 100%) center center / auto", height: "250px", width: "450px", padding: "0px" }} />
-                  {isSel && <div style={{ position: 'absolute', top: '12px', right: '12px', width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent,#7B8FC8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <div key={i} onClick={() => choose(i)} style={{ position:'relative',borderRadius:'18px',overflow:'hidden',aspectRatio:'4/5',cursor:'pointer',background:opt.g,boxShadow:isSel?`0 0 0 3px var(--accent,#7B8FC8),0 12px 32px rgba(28,26,46,.18)`:'0 3px 14px rgba(28,26,46,.08)',transform:isSel?'scale(.97)':'scale(1)',transition:'all .3s cubic-bezier(.16,1,.3,1)',animation:`slideUp .5s cubic-bezier(.16,1,.3,1) ${i*0.06}s both` }}>
+                  {/* Unsplash 情境照 */}
+                  <img src={opt.img} alt={opt.label} loading="lazy"
+                       style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',filter:'saturate(1.05)' }} />
+                  {/* 漸層蒙層,確保文字可讀 */}
+                  <div style={{ position:'absolute',inset:0,background:'linear-gradient(to top,rgba(20,18,32,.85) 0%,rgba(20,18,32,.25) 50%,rgba(20,18,32,.08) 100%)' }} />
+                  {isSel && <div style={{ position:'absolute',top:'14px',right:'14px',width:'28px',height:'28px',borderRadius:'50%',background:'var(--accent,#7B8FC8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,animation:'fadeIn .25s ease both',boxShadow:'0 4px 12px rgba(0,0,0,.3)' }}>
+                    <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </div>}
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 13px 13px', zIndex: 2 }}>
-                    <div style={{ fontFamily: 'var(--fd)', fontSize: '15px', color: '#fff', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>{opt.label}</div>
-                    <div style={{ fontFamily: 'var(--fb)', fontSize: '12px', color: 'rgba(255,255,255,.58)', lineHeight: 1.4 }}>{opt.sub}</div>
+                  <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'18px 16px 16px',zIndex:2 }}>
+                    <div style={{ fontFamily:'var(--fd)',fontSize:'16px',color:'#fff',fontWeight:700,marginBottom:'5px',lineHeight:1.3 }}>{opt.label}</div>
+                    <div style={{ fontFamily:'var(--fb)',fontSize:'12px',color:'rgba(255,255,255,.78)',lineHeight:1.4 }}>{opt.sub}</div>
                   </div>
-                </div>);
-
+                </div>
+              );
             })}
           </div>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
 // ── LOADING ───────────────────────────────────────────────────────────────────
+// 拉長到 ~6 秒,主題切換從 50ms 改成 700ms (慢 14 倍),配 cross-fade 不再閃
 function Loading({ onDone }) {
   const [pct, setPct] = useState(0);
   const [wi, setWi] = useState(0);
+  const [phase, setPhase] = useState('正在分析你的答案…');
+
   useEffect(() => {
+    // 進度條 ~6 秒
     const t = setInterval(() => {
-      setPct((p) => {
-        if (p >= 100) {clearInterval(t);setTimeout(onDone, 400);return 100;}
-        return p + 2.2;
+      setPct(p => {
+        if (p >= 100) { clearInterval(t); setTimeout(onDone, 700); return 100; }
+        return p + 0.85;
       });
-      setWi((i) => (i + 1) % THEMES.length);
-    }, 45);
+    }, 50);
     return () => clearInterval(t);
   }, [onDone]);
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', background: THEMES[wi].g, transition: 'background .1s linear' }}>
-      <div className="grain" />
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(28,26,46,.62)' }} />
-      <div style={{ position: 'relative', zIndex: 3, textAlign: 'center', padding: '0 28px' }}>
-        <div style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(18px,4vw,28px)', color: '#fff', marginBottom: '10px', letterSpacing: '.02em' }}>正在為你選一面牆…</div>
-        <div style={{ fontFamily: 'var(--fl)', fontSize: '12px', color: 'rgba(255,255,255,.4)', marginBottom: '32px', letterSpacing: '.08em' }}>{THEMES[wi].name}</div>
-        <div style={{ width: '180px', height: '2px', background: 'rgba(255,255,255,.18)', borderRadius: '2px', margin: '0 auto' }}>
-          <div style={{ height: '100%', background: '#fff', width: `${pct}%`, borderRadius: '2px', transition: 'width .05s linear' }} />
-        </div>
-      </div>
-    </div>);
 
+  useEffect(() => {
+    // 主題慢慢輪播,每 700ms 換一個
+    const t = setInterval(() => setWi(i => (i + 1) % THEMES.length), 700);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    // 階段文字
+    const phases = [
+      { at: 0, text: '正在分析你的答案…' },
+      { at: 30, text: '比對 9 種主題傾向…' },
+      { at: 65, text: '為你選一面最對的牆…' },
+      { at: 92, text: '即將揭曉…' },
+    ];
+    const next = phases.filter(p => pct >= p.at).pop();
+    if (next && next.text !== phase) setPhase(next.text);
+  }, [pct, phase]);
+
+  const bg = THEMES[wi].img;
+
+  return (
+    <div style={{ minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',background:'#1C1A2E' }}>
+      {/* 用 img + cross-fade,而非每幀換 background,更平滑 */}
+      {THEMES.map((t, i) => (
+        <img key={t.key} src={t.img} alt="" loading="eager"
+             style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:i===wi?1:0,transition:'opacity 1.2s ease',zIndex:0 }} />
+      ))}
+      <div style={{ position:'absolute',inset:0,background:'rgba(28,26,46,.7)',zIndex:1 }} />
+      <div className="grain" style={{zIndex:2}}/>
+
+      <div style={{ position:'relative',zIndex:3,textAlign:'center',padding:'0 28px',animation:'fadeIn .5s ease both' }}>
+        <div style={{ fontFamily:'var(--fl)',fontSize:'10px',letterSpacing:'.22em',color:'rgba(255,255,255,.5)',marginBottom:'18px',textTransform:'uppercase' }}>analysing your wall</div>
+        <div style={{ fontFamily:'var(--fd)',fontSize:'clamp(22px,4.4vw,32px)',color:'#fff',marginBottom:'16px',letterSpacing:'.02em',animation:'loadingPulse 2.5s ease-in-out infinite' }}>{phase}</div>
+        <div style={{ fontFamily:'var(--fl)',fontSize:'12px',color:'rgba(255,255,255,.55)',marginBottom:'40px',letterSpacing:'.08em',minHeight:'18px',transition:'opacity .3s' }}>· {THEMES[wi].name} ·</div>
+        <div style={{ width:'240px',height:'2px',background:'rgba(255,255,255,.18)',borderRadius:'2px',margin:'0 auto' }}>
+          <div style={{ height:'100%',background:'#fff',width:`${pct}%`,borderRadius:'2px',transition:'width .15s linear',boxShadow:'0 0 10px rgba(255,255,255,.5)' }} />
+        </div>
+        <div style={{ fontFamily:'var(--fl)',fontSize:'11px',color:'rgba(255,255,255,.45)',marginTop:'16px',letterSpacing:'.1em',fontVariantNumeric:'tabular-nums' }}>{Math.min(100,Math.round(pct))}%</div>
+      </div>
+    </div>
+  );
 }
 
 // ── RESULT ────────────────────────────────────────────────────────────────────
-function StatRow({ label, val, total, isMe, accent }) {
-  const [w, setW] = useState(0);
-  const pct = Math.round(val / total * 100);
-  useEffect(() => {setTimeout(() => setW(pct), 300);}, [pct]);
-  return (
-    <div style={{ marginBottom: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-        <span style={{ fontFamily: 'var(--fb)', fontSize: '13px', color: isMe ? '#1C1A2E' : 'rgba(28,26,46,.5)', fontWeight: isMe ? 700 : 400 }}>
-          {label}{isMe && <span style={{ fontSize: '10px', color: accent, marginLeft: '6px', fontFamily: 'var(--fl)' }}>← 你</span>}
-        </span>
-        <span style={{ fontFamily: 'var(--fl)', fontSize: '12px', color: isMe ? accent : 'rgba(28,26,46,.35)' }}>{pct}%</span>
-      </div>
-      <div style={{ height: '5px', background: 'rgba(28,26,46,.08)', borderRadius: '5px', overflow: 'hidden' }}>
-        <div style={{ height: '100%', borderRadius: '5px', background: isMe ? accent : 'rgba(28,26,46,.14)', width: `${w}%`, transition: 'width 1.3s cubic-bezier(.16,1,.3,1)' }} />
-      </div>
-    </div>);
-
-}
-
+// 重新排版,參考使用者附圖:三欄編輯感版面
 function Result({ rk, onRetake }) {
   const r = RESULTS[rk];
   const [vis, setVis] = useState(false);
-  useEffect(() => {setTimeout(() => setVis(true), 80);}, []);
-  const totalVotes = Object.values(SIM_STATS.counts).reduce((a, b) => a + b, 0) + SIM_STATS.total;
+  useEffect(() => { setTimeout(() => setVis(true), 80); }, []);
+  const totalVotes = SIM_STATS.total;
+  const myCount = SIM_STATS.counts[rk] || 0;
+  const myPct = Math.round(myCount / totalVotes * 100);
+  // 找最受歡迎的主題
+  const topKey = Object.entries(SIM_STATS.counts).sort((a,b) => b[1]-a[1])[0][0];
+  const topResult = RESULTS[topKey];
+  const topPct = Math.round(SIM_STATS.counts[topKey] / totalVotes * 100);
 
-  const getTheme = (name) => THEMES.find((t) => t.name === name);
-
+  // 動態抓當下網址,確保分享連結指向使用者目前所在的部署位置
+  // (避免 hard-code domain 造成換站時連回舊版)
+  const shareUrl = `${window.location.origin}${window.location.pathname}#result=${rk}`;
   const copyLink = () => {
-    try {navigator.clipboard.writeText(window.location.href).then(() => alert('連結已複製！'));}
-    catch {alert('請手動複製網址列連結');}
+    try { navigator.clipboard.writeText(shareUrl).then(() => alert('連結已複製！')); }
+    catch { alert('請手動複製網址列連結'); }
+  };
+  const shareLine = () => window.open(`https://line.me/R/share?text=${encodeURIComponent('我測出來是「' + r.name + '」！測測你是哪種牆面人格 ' + shareUrl)}`);
+  const shareFB = () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
+  const shareIG = () => {
+    // IG 不支援 web share intent,引導使用者下載卡片再上傳
+    if (window.confirm('Instagram 不支援直接分享文字連結。\n\n要下載「結果分享卡」圖片嗎?\n下載後可直接上傳到 IG 限動 / 貼文。')) {
+      downloadCard();
+    }
+  };
+
+  // 用 html2canvas 把分享卡渲染成 PNG 下載
+  const cardRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
+  const downloadCard = async () => {
+    if (!cardRef.current || !window.html2canvas) {
+      alert('下載功能載入中,請稍後再試');
+      return;
+    }
+    setDownloading(true);
+    try {
+      // 先等卡片內所有圖片都載完(尤其 wsrv 代理圖)
+      const imgs = cardRef.current.querySelectorAll('img');
+      await Promise.all(Array.from(imgs).map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve; // 不阻塞
+          // 防呆 timeout 8 秒
+          setTimeout(resolve, 8000);
+        });
+      }));
+
+      const canvas = await window.html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,        // 允許跨域圖,圖片真不行也至少有版面
+        backgroundColor: '#F4F0E8',
+        logging: false,
+        imageTimeout: 8000,
+      });
+      const link = document.createElement('a');
+      link.download = `wall-quiz-${r.name}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error(err);
+      alert('下載失敗,請改用「複製連結」分享');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
-    <div style={{ background: 'var(--page-bg,#F4F0E8)', opacity: vis ? 1 : 0, transition: 'opacity .6s ease' }}>
+    <div style={{ background:'var(--page-bg,#F4F0E8)',opacity:vis?1:0,transition:'opacity .6s ease',minHeight:'100vh',paddingTop:'80px' }}>
+      {/* ── Editorial header label ── */}
+      <div style={{ maxWidth:'1280px',margin:'0 auto',padding:'8px 28px 0' }}>
+        <span style={{ fontFamily:'var(--fl)',fontSize:'12px',fontWeight:600,color:'#1C1A2E',letterSpacing:'.05em' }}>03 <span style={{ color:'rgba(28,26,46,.55)',marginLeft:'8px',fontWeight:400 }}>結果頁面</span></span>
+      </div>
 
-      {/* ── Hero ── */}
-      <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '120px 28px 64px', overflow: 'hidden', background: r.g }}>
-        <div className="grain" />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(28,26,46,.78) 0%,rgba(28,26,46,.08) 60%,transparent 100%)' }} />
-        <div style={{ position: 'relative', zIndex: 3, maxWidth: '640px', animation: 'fadeUp .8s cubic-bezier(.16,1,.3,1) both' }}>
-          <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.2em', color: 'rgba(255,255,255,.5)', marginBottom: '14px', textTransform: 'uppercase' }}>YOUR WALL STATE</div>
-          <div style={{ fontFamily: 'var(--fl)', fontSize: '12px', color: 'rgba(255,255,255,.55)', marginBottom: '6px', letterSpacing: '.06em' }}>{r.mainSeries}</div>
-          <h1 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(34px,7vw,68px)', color: '#fff', margin: '0 0 28px', lineHeight: 1.12, fontWeight: 600 }}>你是<br />「{r.name}」</h1>
-          <p style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(16px,2.5vw,21px)', color: 'rgba(255,255,255,.82)', lineHeight: 1.72, whiteSpace: 'pre-line' }}>{r.tagline}</p>
+      {/* ── MAIN GRID — 三欄式編輯感版面 ── */}
+      <div style={{ maxWidth:'1280px',margin:'0 auto',padding:'40px 28px 60px' }}>
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1.4fr 1fr',gap:'40px',alignItems:'start' }} className="result-grid">
+          {/* ── LEFT: result name + tagline + desc (CTA 拆出去) ── */}
+          <div className="r-answer" style={{ animation:'fadeUp .8s cubic-bezier(.16,1,.3,1) both' }}>
+            <div style={{ fontFamily:'var(--fb)',fontSize:'14px',color:'rgba(28,26,46,.55)',marginBottom:'8px' }}>你的空間人格是</div>
+            <h1 style={{ fontFamily:'var(--fd)',fontSize:'clamp(28px,3.2vw,40px)',color:'#1C1A2E',lineHeight:1.15,fontWeight:900,margin:'0 0 8px',letterSpacing:'.02em' }}>{r.mainSeries}</h1>
+            <div style={{ fontFamily:'var(--fd)',fontSize:'clamp(20px,2vw,26px)',color:'#1C1A2E',fontWeight:600,margin:'0 0 28px',letterSpacing:'.05em' }}>{r.name}</div>
+
+            {/* Tagline with quote marks */}
+            <div style={{ position:'relative',padding:'18px 8px 18px 28px',marginBottom:'24px',borderLeft:'2px solid var(--accent,#7B8FC8)' }}>
+              <span style={{ position:'absolute',left:'-2px',top:'-4px',fontFamily:'var(--fd)',fontSize:'32px',color:'var(--accent,#7B8FC8)',lineHeight:1,fontWeight:900 }}>"</span>
+              <p style={{ fontFamily:'var(--fd)',fontSize:'15px',color:'#1C1A2E',lineHeight:1.7,whiteSpace:'pre-line',fontStyle:'italic',margin:0,fontWeight:500 }}>{r.tagline}</p>
+            </div>
+
+            <p style={{ fontFamily:'var(--fb)',fontSize:'13px',color:'rgba(28,26,46,.7)',lineHeight:1.85,margin:0 }}>{r.desc}</p>
+
+            {/* 桌機版 CTA 跟 answer 在一起;手機版會被 r-cta 取代 */}
+            <div className="r-cta-desktop" style={{ marginTop:'28px' }}>
+              <Btn size="md" variant="dark" onClick={() => window.open(r.url,'_blank')} style={{ width:'100%',marginBottom:'10px' }}>
+                查看{r.mainSeries}商品
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Btn>
+              <div style={{ display:'flex',gap:'8px' }}>
+                <Btn size="sm" variant="outline" onClick={() => window.open('https://www.syideashop.com','_blank')} style={{ flex:1 }}>前往官網</Btn>
+                <Btn size="sm" variant="ghost" onClick={() => window.open('https://line.me/R/ti/p/%40iwo4112h','_blank')} style={{ flex:1 }}>聯絡我們 / 諮詢</Btn>
+              </div>
+            </div>
+          </div>
+
+          {/* ── CENTER: hero image — 系列模擬圖 ── */}
+          <div className="r-image" style={{ animation:'fadeUp 1s cubic-bezier(.16,1,.3,1) .15s both' }}>
+            <div style={{ position:'relative',aspectRatio:'1/1',borderRadius:'20px',overflow:'hidden',background:r.g,boxShadow:'0 24px 64px rgba(28,26,46,.18)' }}>
+              <img src={r.img} alt={r.mainSeries}
+                   style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover' }} />
+              <div className="grain" style={{ opacity:.05 }}/>
+            </div>
+            <div style={{ marginTop:'14px',fontFamily:'var(--fl)',fontSize:'11px',color:'rgba(28,26,46,.5)',letterSpacing:'.12em',textAlign:'center',textTransform:'uppercase' }}>
+              · {r.mainSeries.replace(' 系列','').replace('系列','')} · representative image ·
+            </div>
+          </div>
+
+          {/* ── 手機版專用 CTA — 桌機隱藏 ── */}
+          <div className="r-cta-mobile" style={{ display:'none' }}>
+            <Btn size="md" variant="dark" onClick={() => window.open(r.url,'_blank')} style={{ width:'100%',marginBottom:'10px' }}>
+              查看{r.mainSeries}商品
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </Btn>
+            <div style={{ display:'flex',gap:'8px' }}>
+              <Btn size="sm" variant="outline" onClick={() => window.open('https://www.syideashop.com','_blank')} style={{ flex:1 }}>前往官網</Btn>
+              <Btn size="sm" variant="ghost" onClick={() => window.open('https://line.me/R/ti/p/%40iwo4112h','_blank')} style={{ flex:1 }}>聯絡我們 / 諮詢</Btn>
+            </div>
+          </div>
+
+          {/* ── RIGHT: share + stats + retake ── */}
+          <div className="r-side" style={{ animation:'fadeUp 1.1s cubic-bezier(.16,1,.3,1) .3s both',display:'flex',flexDirection:'column',gap:'14px' }}>
+            {/* Share card */}
+            <div style={{ background:'rgba(255,255,255,.55)',borderRadius:'14px',padding:'16px',border:'1px solid rgba(28,26,46,.06)' }}>
+              <div style={{ fontFamily:'var(--fb)',fontSize:'13px',color:'#1C1A2E',fontWeight:500,marginBottom:'12px' }}>分享結果給朋友</div>
+              <div style={{ display:'flex',gap:'8px',marginBottom:'10px' }}>
+                <button onClick={shareLine} title="分享到 LINE" style={iconBtnStyle('#06C755')}>
+                  <span style={{ fontFamily:'var(--fl)',fontSize:'11px',fontWeight:700,color:'#fff' }}>L</span>
+                </button>
+                <button onClick={shareFB} title="分享到 Facebook" style={iconBtnStyle('#1877F2')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82V14.706h-3.13v-3.622h3.13V8.408c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.464.099 2.795.143v3.24h-1.918c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/></svg>
+                </button>
+                <button onClick={shareIG} title="分享到 Instagram" style={{ ...iconBtnStyle('transparent'), background:'linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                </button>
+                <button onClick={copyLink} title="複製連結" style={iconBtnStyle('rgba(28,26,46,.85)')}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+              </div>
+              {/* 下載結果卡 — 主要分享方式 */}
+              <button onClick={downloadCard} disabled={downloading}
+                      style={{ width:'100%',padding:'10px 12px',borderRadius:'10px',border:'1px solid rgba(28,26,46,.15)',background:'rgba(28,26,46,.04)',cursor:downloading?'wait':'pointer',fontFamily:'var(--fb)',fontSize:'12px',fontWeight:500,color:'#1C1A2E',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',transition:'all .25s' }}>
+                {downloading ? (
+                  <><span style={{display:'inline-block',width:'12px',height:'12px',border:'1.5px solid currentColor',borderTopColor:'transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>產生圖片中…</>
+                ) : (
+                  <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下載結果卡片 (適合 IG)</>
+                )}
+              </button>
+            </div>
+
+            {/* Stats card */}
+            <div style={{ background:'rgba(255,255,255,.55)',borderRadius:'14px',padding:'18px',border:'1px solid rgba(28,26,46,.06)' }}>
+              <div style={{ fontFamily:'var(--fb)',fontSize:'13px',color:'#1C1A2E',fontWeight:600,marginBottom:'14px' }}>測驗統計</div>
+
+              <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline',padding:'8px 0',borderBottom:'1px solid rgba(28,26,46,.07)' }}>
+                <span style={{ fontFamily:'var(--fb)',fontSize:'12px',color:'rgba(28,26,46,.6)' }}>已有</span>
+                <span><strong style={{ fontFamily:'var(--fl)',fontSize:'19px',color:'#1C1A2E',fontWeight:700,fontVariantNumeric:'tabular-nums' }}>{totalVotes.toLocaleString()}</strong><span style={{ fontFamily:'var(--fb)',fontSize:'11px',color:'rgba(28,26,46,.55)',marginLeft:'4px' }}>人完成測驗</span></span>
+              </div>
+
+              <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline',padding:'8px 0',borderBottom:'1px solid rgba(28,26,46,.07)' }}>
+                <span style={{ fontFamily:'var(--fb)',fontSize:'12px',color:'rgba(28,26,46,.6)' }}>和你同類型的有</span>
+                <span style={{ fontFamily:'var(--fl)',fontSize:'18px',color:r.accent,fontWeight:700,fontVariantNumeric:'tabular-nums' }}>{myPct}%</span>
+              </div>
+
+              <div style={{ padding:'10px 0 0' }}>
+                <div style={{ fontFamily:'var(--fb)',fontSize:'12px',color:'rgba(28,26,46,.6)',marginBottom:'4px' }}>最受歡迎風格</div>
+                <div style={{ fontFamily:'var(--fd)',fontSize:'14px',color:'#1C1A2E',fontWeight:600,textAlign:'right' }}>{topResult.mainSeries}</div>
+                <div style={{ fontFamily:'var(--fl)',fontSize:'11px',color:'rgba(28,26,46,.5)',textAlign:'right',marginTop:'2px',fontVariantNumeric:'tabular-nums' }}>{topPct}% 的人選擇</div>
+              </div>
+            </div>
+
+            {/* Retake button */}
+            <Btn size="md" variant="ghost" onClick={onRetake} style={{ width:'100%' }}>
+              再測一次
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            </Btn>
+          </div>
         </div>
       </div>
 
-      {/* ── Analysis ── */}
-      <div style={{ padding: '64px 28px', maxWidth: '660px', margin: '0 auto' }}>
-        <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.15em', color: 'var(--accent,#7B8FC8)', marginBottom: '14px', textTransform: 'uppercase' }}>Analysis</div>
-        <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(20px,3.5vw,30px)', color: '#1C1A2E', margin: '0 0 20px', fontWeight: 600 }}>你的現在，適合這樣的空間語言</h2>
-        <p style={{ fontFamily: 'var(--fb)', fontSize: '16px', color: 'rgba(28,26,46,.68)', lineHeight: 1.88 }}>{r.desc}</p>
-      </div>
-
-      {/* ── Extensions ── */}
-      <div style={{ padding: '0 28px 64px', maxWidth: '660px', margin: '0 auto' }}>
-        <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.15em', color: 'var(--accent,#7B8FC8)', marginBottom: '14px', textTransform: 'uppercase' }}>Also For You</div>
-        <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(18px,3vw,26px)', color: '#1C1A2E', margin: '0 0 22px', fontWeight: 600 }}>推薦你從這些主題開始看</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: '10px' }}>
-          {r.ext.map((name) => {
-            const t = getTheme(name);
-            if (!t) return null;
-            return (
-              <div key={name} onClick={() => window.open(t.url, '_blank')}
-              onMouseEnter={(e) => {e.currentTarget.style.transform = 'translateY(-4px)';e.currentTarget.style.boxShadow = '0 14px 36px rgba(28,26,46,.18)';}}
-              onMouseLeave={(e) => {e.currentTarget.style.transform = 'none';e.currentTarget.style.boxShadow = 'none';}}
-              style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'pointer', background: t.g, aspectRatio: '4/3', position: 'relative', transition: 'transform .28s ease,box-shadow .28s ease' }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(28,26,46,.78) 0%,transparent 60%)' }} />
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 13px 12px', zIndex: 2 }}>
-                  <div style={{ fontFamily: 'var(--fl)', fontSize: '9px', letterSpacing: '.12em', color: 'rgba(255,255,255,.45)', marginBottom: '2px' }}>{t.nameEn}</div>
-                  <div style={{ fontFamily: 'var(--fd)', fontSize: '14px', color: '#fff', fontWeight: 600 }}>{t.name}</div>
-                  <div style={{ fontFamily: 'var(--fb)', fontSize: '11px', color: 'rgba(255,255,255,.6)', marginTop: '5px' }}>查看商品 →</div>
-                </div>
-              </div>);
-
-          })}
+      {/* ── 你可能也會喜歡 — 底部橫排 ── */}
+      <div style={{ borderTop:'1px solid rgba(28,26,46,.08)',padding:'40px 28px 80px',background:'rgba(255,255,255,.3)' }}>
+        <div style={{ maxWidth:'1280px',margin:'0 auto' }}>
+          <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'24px' }}>
+            <h3 style={{ fontFamily:'var(--fd)',fontSize:'22px',color:'#1C1A2E',margin:0,fontWeight:600 }}>你可能也會喜歡</h3>
+            <button onClick={() => window.open('https://www.syideashop.com/categories/主題式壁布','_blank')} style={{ background:'none',border:'none',cursor:'pointer',fontFamily:'var(--fl)',fontSize:'13px',color:'rgba(28,26,46,.7)',display:'flex',alignItems:'center',gap:'4px' }}>
+              查看更多
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </div>
+          <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'12px' }}>
+            {r.ext.map(key => {
+              const t = THEME_BY_KEY[key]; if (!t) return null;
+              return (
+                <a key={key} href={t.url} target="_blank" rel="noopener"
+                   style={{ position:'relative',aspectRatio:'4/3',borderRadius:'12px',overflow:'hidden',cursor:'pointer',display:'block',textDecoration:'none' }}
+                   onMouseEnter={(e) => e.currentTarget.style.transform='translateY(-4px)'}
+                   onMouseLeave={(e) => e.currentTarget.style.transform='none'}>
+                  <img src={t.img} alt={t.name} loading="lazy"
+                       style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transition:'transform .35s ease' }} />
+                  <div style={{ position:'absolute',inset:0,background:'linear-gradient(to top,rgba(28,26,46,.78) 0%,transparent 60%)' }} />
+                  <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'12px 14px' }}>
+                    <div style={{ fontFamily:'var(--fd)',fontSize:'14px',color:'#fff',fontWeight:600 }}>{t.name}</div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* ── Stats ── */}
-      <div style={{ background: '#1C1A2E', padding: '60px 28px' }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto' }}>
-          <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.15em', color: 'rgba(255,255,255,.3)', marginBottom: '14px', textTransform: 'uppercase' }}>Stats</div>
-          <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(20px,3vw,26px)', color: '#fff', margin: '0 0 8px', fontWeight: 600 }}>看看其他人的選擇</h2>
-          <p style={{ fontFamily: 'var(--fb)', fontSize: '14px', color: 'rgba(255,255,255,.38)', margin: '0 0 32px' }}>目前已有 <strong style={{ color: '#fff' }}>{totalVotes.toLocaleString()}</strong> 人完成測驗</p>
-          {Object.entries(SIM_STATS.counts).map(([k, v]) => {
-            const rr = RESULTS[k];if (!rr) return null;
-            return <StatRow key={k} label={rr.name} val={v} total={totalVotes} isMe={k === rk} accent={r.accent} />;
-          })}
+      {/* ── HIDDEN SHARE CARD — 用 html2canvas 渲染成 PNG ── */}
+      {/* 1080×1350 IG Story 友善比例 4:5,放在畫面外但仍會被渲染 */}
+      {/* 圖片走 wsrv.nl 代理以加上 CORS header,html2canvas 才抓得到像素 */}
+      <div ref={cardRef} style={{
+        position:'fixed', left:'-9999px', top:0,
+        width:'1080px', height:'1350px',
+        background:'#F4F0E8',
+        fontFamily:'system-ui, sans-serif',
+        padding:'80px 70px',
+        display:'flex', flexDirection:'column',
+        overflow:'hidden'
+      }}>
+        {/* Top label */}
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'40px' }}>
+          <div>
+            <div style={{ fontSize:'28px',fontWeight:700,color:'#1C1A2E',letterSpacing:'.06em' }}>SYIDEA</div>
+            <div style={{ fontSize:'14px',color:'rgba(28,26,46,.55)',letterSpacing:'.16em',textTransform:'uppercase',marginTop:'4px' }}>Wall Quiz · 主題式宣影布</div>
+          </div>
+          <div style={{ fontSize:'14px',color:'rgba(28,26,46,.5)',letterSpacing:'.18em',textTransform:'uppercase' }}>YOUR WALL</div>
+        </div>
+
+        {/* Main content */}
+        <div style={{ fontFamily:"'Noto Sans TC',sans-serif",fontSize:'22px',color:'rgba(28,26,46,.6)',marginBottom:'12px' }}>你的空間人格是</div>
+        <div style={{ fontFamily:"'Noto Serif TC',serif",fontSize:'68px',color:'#1C1A2E',fontWeight:900,lineHeight:1.05,letterSpacing:'.02em',marginBottom:'8px' }}>{r.mainSeries}</div>
+        <div style={{ fontFamily:"'Noto Serif TC',serif",fontSize:'42px',color:'#1C1A2E',fontWeight:600,letterSpacing:'.05em',marginBottom:'40px' }}>{r.name}</div>
+
+        {/* Tagline with quote */}
+        <div style={{ position:'relative',padding:'24px 12px 24px 36px',marginBottom:'40px',borderLeft:`4px solid ${r.accent}` }}>
+          <span style={{ position:'absolute',left:'8px',top:'8px',fontFamily:"'Noto Serif TC',serif",fontSize:'56px',color:r.accent,lineHeight:1,fontWeight:900 }}>"</span>
+          <p style={{ fontFamily:"'Noto Serif TC',serif",fontSize:'28px',color:'#1C1A2E',lineHeight:1.55,whiteSpace:'pre-line',fontStyle:'italic',margin:0,fontWeight:500,paddingLeft:'40px' }}>{r.tagline}</p>
+        </div>
+
+        {/* Hero image — 系列模擬圖,走 wsrv 代理確保 CORS */}
+        <div style={{ position:'relative',flex:1,borderRadius:'24px',overflow:'hidden',background:r.g,minHeight:'440px',marginBottom:'30px' }}>
+          <img src={`https://wsrv.nl/?url=${encodeURIComponent(r.img)}&w=1080&output=jpg`}
+               alt={r.mainSeries} crossOrigin="anonymous"
+               style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',display:'block' }} />
+        </div>
+
+        {/* Footer with QR-like prompt + URL */}
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-end',paddingTop:'20px',borderTop:'1px solid rgba(28,26,46,.12)' }}>
+          <div>
+            <div style={{ fontSize:'13px',color:'rgba(28,26,46,.4)',letterSpacing:'.15em',textTransform:'uppercase',marginBottom:'4px' }}>take the quiz</div>
+            <div style={{ fontFamily:"'Noto Serif TC',serif",fontSize:'20px',color:'#1C1A2E',fontWeight:500 }}>選一面牆，測出你現在的人生狀態</div>
+          </div>
+          <div style={{ fontSize:'14px',color:'rgba(28,26,46,.55)',textAlign:'right',letterSpacing:'.04em' }}>
+            {window.location.hostname || 'syideashop.com'}<br/>
+            <span style={{fontSize:'11px',color:'rgba(28,26,46,.4)',letterSpacing:'.1em',textTransform:'uppercase'}}>{window.location.pathname.replace(/\/$/,'') || ''}</span>
+          </div>
         </div>
       </div>
 
-      {/* ── CTA ── */}
-      <div style={{ padding: '64px 28px', maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
-        <h2 style={{ fontFamily: 'var(--fd)', fontSize: 'clamp(22px,4vw,36px)', color: '#1C1A2E', margin: '0 0 10px', lineHeight: 1.28, fontWeight: 600 }}>喜歡這個狀態，<br />就讓牆面把它留下來</h2>
-        <p style={{ fontFamily: 'var(--fb)', fontSize: '14px', color: 'rgba(28,26,46,.45)', margin: '0 0 36px' }}>{r.mainSeries} · {r.name}</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '11px', alignItems: 'center' }}>
-          <Btn size="lg" variant="dark" onClick={() => window.open(r.url, '_blank')} sx={{ width: '100%', maxWidth: '340px' }}>查看這個系列商品 →</Btn>
-          <Btn size="lg" variant="outline" onClick={() => window.open('https://www.syideashop.com', '_blank')} sx={{ width: '100%', maxWidth: '340px' }}>前往官網看更多案例</Btn>
-          <Btn size="lg" variant="ghost" onClick={onRetake} sx={{ width: '100%', maxWidth: '340px' }}>再測一次</Btn>
-        </div>
-      </div>
-
-      {/* ── Share ── */}
-      <div style={{ background: 'rgba(28,26,46,.04)', borderTop: '1px solid rgba(28,26,46,.08)', padding: '48px 28px 80px', textAlign: 'center' }}>
-        <div style={{ fontFamily: 'var(--fl)', fontSize: '10px', letterSpacing: '.14em', color: 'rgba(28,26,46,.3)', marginBottom: '10px', textTransform: 'uppercase' }}>Share</div>
-        <h3 style={{ fontFamily: 'var(--fd)', fontSize: '22px', color: '#1C1A2E', margin: '0 0 26px', fontWeight: 600 }}>把你的結果分享出去</h3>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Btn variant="ghost" onClick={() => window.open(`https://line.me/R/share?text=${encodeURIComponent('我測出來是「' + r.name + '」！測測你是哪種牆面人格 ' + window.location.href)}`)}>分享到 LINE</Btn>
-          <Btn variant="ghost" onClick={copyLink}>複製連結</Btn>
-          <Btn variant="ghost" onClick={() => alert('截圖畫面後，直接分享到 Instagram Story！')}>分享到 IG</Btn>
-        </div>
-      </div>
-    </div>);
-
+      {/* responsive collapse */}
+      <style>{`
+        @media (max-width: 900px) {
+          .result-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          /* 手機順序: 答案內容 → POV 圖 → CTA → 分享結果 → 測驗統計 */
+          .r-answer { order: 1; }
+          .r-image  { order: 2; }
+          .r-cta-mobile { order: 3; display: block !important; }
+          .r-cta-desktop { display: none; }
+          .r-side { order: 4; }
+        }
+      `}</style>
+    </div>
+  );
 }
+
+const iconBtnStyle = (bg) => ({
+  width:'30px',height:'30px',borderRadius:'50%',border:'none',cursor:'pointer',
+  background:bg,display:'flex',alignItems:'center',justifyContent:'center',transition:'transform .2s'
+});
 
 // ── APP ROOT ─────────────────────────────────────────────────────────────────
 function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [scene, setScene] = useState('landing');
   const [rk, setRk] = useState(null);
 
-  const goQuiz = () => {window.scrollTo(0, 0);setScene('quiz');};
-  const goLanding = () => {window.scrollTo(0, 0);setScene('landing');};
+  useEffect(() => { applyTweaks(tweaks); }, [tweaks]);
 
-  const finishQuiz = (ans) => {
-    const result = calcResult(ans);
-    setRk(result);
-    setScene('loading');
-  };
+  useEffect(() => {
+    const m = window.location.hash.match(/^#result=([\w_]+)/);
+    if (m && RESULTS[m[1]]) { setRk(m[1]); setScene('result'); }
+  }, []);
 
-  const afterLoad = () => {window.scrollTo(0, 0);setScene('result');};
+  useEffect(() => {
+    if (scene === 'result' && rk) {
+      const newHash = `#result=${rk}`;
+      if (window.location.hash !== newHash) {
+        window.history.replaceState(null, '', window.location.pathname + newHash);
+      }
+    } else if (scene === 'landing' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [scene, rk]);
 
+  const goQuiz     = () => { window.scrollTo(0,0); setScene('quiz'); };
+  const goLanding  = () => { window.scrollTo(0,0); setRk(null); setScene('landing'); };
+  const finishQuiz = (ans) => { setRk(calcResult(ans)); setScene('loading'); };
+  const afterLoad  = () => { window.scrollTo(0,0); setScene('result'); };
+
+  // landing 用淺色 nav,result 也用淺色 nav (因為背景是淺米白)
   return (
     <div>
-      {(scene === 'landing' || scene === 'result') && <Nav onLogo={goLanding} />}
-      {scene === 'landing' && <Landing onStart={goQuiz} />}
-      {scene === 'quiz' && <Quiz onDone={finishQuiz} onBack={goLanding} />}
-      {scene === 'loading' && <Loading onDone={afterLoad} />}
-      {scene === 'result' && rk && <Result rk={rk} onRetake={goLanding} />}
-    </div>);
+      {(scene === 'landing' || scene === 'result') && <Nav onLogo={goLanding} dark={false}/>}
+      {scene === 'landing' && <Landing onStart={goQuiz}/>}
+      {scene === 'quiz'    && <Quiz onDone={finishQuiz} onBack={goLanding}/>}
+      {scene === 'loading' && <Loading onDone={afterLoad}/>}
+      {scene === 'result' && rk && <Result rk={rk} onRetake={goLanding}/>}
 
+      <TweaksPanel title="設計微調">
+        <TweakSection label="色彩氛圍" />
+        <TweakSegmented label="配色" value={tweaks.colorMood}
+                        options={['夢幻','沉靜','清新','藝術']}
+                        onChange={(v) => setTweak('colorMood', v)} />
+        <TweakSection label="字體語感" />
+        <TweakSegmented label="排版" value={tweaks.typeVoice}
+                        options={['詩意','現代','編輯']}
+                        onChange={(v) => setTweak('typeVoice', v)} />
+        <TweakSection label="動畫節奏" />
+        <TweakSegmented label="速度" value={tweaks.animSpeed}
+                        options={[{value:1,label:'慢'},{value:2,label:'中'},{value:3,label:'快'}]}
+                        onChange={(v) => setTweak('animSpeed', v)} />
+      </TweaksPanel>
+    </div>
+  );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
