@@ -170,15 +170,49 @@ const QUESTIONS = [
   { label: '「這就是我」的個性表達', sub: '家是你最誠實的自白', img: 'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=800&q=80', g: 'linear-gradient(145deg,#101018 0%,#202030 45%,#484858 100%)' }]
 }];
 
+// 加權計分:每題選項對應 3 種傾向,主要 3 分、次要 2 分、第三 1 分
+// 這樣的設計避免了多個傾向同分時被 PRIORITY 順序強制決定,讓結果更精準
 const SCORE_MAP = [
-[['工匠','理性','未來'], ['藝術','文青','東方'], ['清新','熱帶','感受'], ['感受','純粹','藝術']],
-[['工匠','東方','理性'], ['熱帶','藝術','未來'], ['清新','感受','純粹'], ['感受','藝術','文青']],
-[['工匠','未來','藝術'], ['熱帶','未來','感受'], ['感受','文青','純粹'], ['清新','感受','東方']],
-[['工匠','理性','東方'], ['熱帶','藝術','文青'], ['感受','純粹','文青'], ['未來','清新','藝術']],
-[['感受','清新','東方'], ['熱帶','未來','藝術'], ['純粹','文青','清新'], ['工匠','藝術','理性']]];
+  // Q1 走進陌生空間,目光最先停在哪裡
+  [
+    [['工匠',3],['理性',2],['東方',1]],   // 金屬光澤
+    [['藝術',3],['文青',2],['純粹',1]],   // 牆上的畫
+    [['清新',3],['熱帶',2],['感受',1]],   // 窗邊綠意
+    [['感受',3],['純粹',2],['文青',1]],   // 整體氛圍
+  ],
+  // Q2 最近最常出現的情緒
+  [
+    [['理性',3],['工匠',2],['東方',1]],   // 沉穩專注
+    [['熱帶',3],['藝術',2],['未來',1]],   // 熱情奔放
+    [['清新',3],['感受',2],['純粹',1]],   // 輕盈自在
+    [['感受',3],['文青',2],['東方',1]],   // 柔軟細膩
+  ],
+  // Q3 週末有空,你會
+  [
+    [['工匠',3],['純粹',2],['理性',1]],   // 動手做
+    [['未來',3],['熱帶',2],['清新',1]],   // 找人去新地方探險
+    [['文青',3],['純粹',2],['感受',1]],   // 安靜讀書喝咖啡
+    [['東方',3],['感受',2],['清新',1]],   // 待在家陪家人寵物
+  ],
+  // Q4 形容你現在的人生階段
+  [
+    [['工匠',3],['理性',2],['東方',1]],   // 打地基、扎實累積
+    [['藝術',3],['熱帶',2],['文青',1]],   // 開花期、燦爛綻放
+    [['純粹',3],['文青',2],['感受',1]],   // 沉澱期、向內整理
+    [['未來',3],['清新',2],['藝術',1]],   // 重塑期、想要全新開始
+  ],
+  // Q5 走進家門,第一秒感覺到什麼
+  [
+    [['東方',3],['感受',2],['工匠',1]],   // 「我回來了」的安心
+    [['熱帶',3],['未來',2],['藝術',1]],   // 「哇！」的驚喜感
+    [['純粹',3],['清新',2],['文青',1]],   // 「呼〜」的放鬆
+    [['藝術',3],['理性',2],['未來',1]],   // 「這就是我」的個性表達
+  ],
+];
 
 const TYPE_TO_RESULT = { '感受':'introvert_sensitive','文青':'introvert_sensitive','工匠':'steady_craftsman','純粹':'pure_poetic','熱帶':'tropical_vibrant','清新':'fresh_healing','藝術':'artistic_soul','理性':'rational_minimalist','東方':'oriental_elegant','未來':'future_explorer' };
-const PRIORITY = ['感受','純粹','藝術','清新','文青','工匠','東方','熱帶','未來','理性'];
+// PRIORITY 順序: 平手時優先給「比較少見」的結果,避免熱門結果再被加成
+const PRIORITY = ['理性','東方','熱帶','純粹','清新','未來','工匠','藝術','文青','感受'];
 
 // ── REAL SYIDEASHOP IMAGES ────────────────────────────────────────────────────
 const SY_IMG = {
@@ -219,11 +253,13 @@ const THEMES = [
 
 const THEME_BY_KEY = THEMES.reduce((a,t) => (a[t.key]=t, a), {});
 
-const SIM_STATS = { total: 247, counts: { introvert_sensitive:62, steady_craftsman:34, pure_poetic:24, tropical_vibrant:38, fresh_healing:30, artistic_soul:22, rational_minimalist:25, oriental_elegant:11, future_explorer:38 } };
+const SIM_STATS = { total: 247, counts: { introvert_sensitive:39, pure_poetic:39, tropical_vibrant:37, artistic_soul:30, steady_craftsman:29, fresh_healing:26, rational_minimalist:18, oriental_elegant:15, future_explorer:14 } };
 
 function calcResult(answers) {
   const s = {}; PRIORITY.forEach(t => s[t] = 0);
-  answers.forEach((ai, qi) => SCORE_MAP[qi][ai].forEach(t => s[t]++));
+  answers.forEach((ai, qi) => {
+    SCORE_MAP[qi][ai].forEach(([spirit, weight]) => { s[spirit] += weight; });
+  });
   let best = PRIORITY[0], top = -1;
   for (const t of PRIORITY) if (s[t] > top) { top = s[t]; best = t; }
   return TYPE_TO_RESULT[best];
