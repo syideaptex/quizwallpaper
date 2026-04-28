@@ -16,12 +16,12 @@
      Google Analytics 4
      把 G-XXXXXXXXXX 換成你的 GA4 評估 ID
      ════════════════════════════════════════════════════════════ -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script async src="G-XSV67WGEZK"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
+  gtag('config', 'G-XSV67WGEZK');
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -107,15 +107,15 @@ const { useState, useEffect, useRef, useCallback } = React;
 // 把以下兩個值填入你的實際 ID/URL 後即可啟用
 // ════════════════════════════════════════════════════════════════
 const ANALYTICS = {
-  // Google Sheets Apps Script 部署 URL
+  //
   // 從 Apps Script → 部署 → 網路應用程式 URL 複製貼上
-  SHEETS_URL: 'YOUR_APPS_SCRIPT_URL_HERE',
+  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbyla2x49aTtuzbEbP8pCq6iB0ERubSbXS0on2sCYy1kxdyg_hLvzmCyyvlfPHWyIQOK/exec',
 
   // GA4 評估 ID (同時記得更新上方 <head> 裡的 G-XXXXXXXXXX)
-  GA_ID: 'G-XXXXXXXXXX',
+  GA_ID: 'G-XSV67WGEZK',
 
   // 設成 true 後兩個服務都會開始送資料
-  enabled: false,
+  enabled: true,
 };
 
 // ── 送資料到 Google Sheets ──────────────────────────────────────
