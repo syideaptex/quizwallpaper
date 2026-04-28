@@ -11,6 +11,18 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+
+<!-- ════════════════════════════════════════════════════════════
+     Google Analytics 4
+     把 G-XXXXXXXXXX 換成你的 GA4 評估 ID
+     ════════════════════════════════════════════════════════════ -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -89,6 +101,74 @@ button:active{transform:scale(.97)!important}
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
+
+// ════════════════════════════════════════════════════════════════
+// ANALYTICS CONFIG
+// 把以下兩個值填入你的實際 ID/URL 後即可啟用
+// ════════════════════════════════════════════════════════════════
+const ANALYTICS = {
+  // Google Sheets Apps Script 部署 URL
+  // 從 Apps Script → 部署 → 網路應用程式 URL 複製貼上
+  SHEETS_URL: 'YOUR_APPS_SCRIPT_URL_HERE',
+
+  // GA4 評估 ID (同時記得更新上方 <head> 裡的 G-XXXXXXXXXX)
+  GA_ID: 'G-XXXXXXXXXX',
+
+  // 設成 true 後兩個服務都會開始送資料
+  enabled: false,
+};
+
+// ── 送資料到 Google Sheets ──────────────────────────────────────
+function trackToSheets(resultKey, resultName, answers) {
+  if (!ANALYTICS.enabled || !ANALYTICS.SHEETS_URL || ANALYTICS.SHEETS_URL.includes('YOUR_')) return;
+  try {
+    fetch(ANALYTICS.SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',   // Apps Script 不回 CORS header,但資料仍會送到
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resultKey,
+        resultName,
+        answers,
+        ua: navigator.userAgent,
+        mobile: /Mobi|Android|iPhone/i.test(navigator.userAgent),
+      }),
+    });
+  } catch (e) { console.warn('Sheets tracking failed:', e); }
+}
+
+// ── 送 Custom Event 到 GA4 ──────────────────────────────────────
+function trackToGA(resultKey, resultName) {
+  if (!ANALYTICS.enabled) return;
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'quiz_completed', {
+        result_type: resultKey,
+        result_name: resultName,
+      });
+    }
+  } catch (e) { console.warn('GA tracking failed:', e); }
+}
+
+// ── 追蹤 CTA 點擊(查看系列商品)─────────────────────────────────
+function trackCTAClick(seriesName) {
+  if (!ANALYTICS.enabled) return;
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'cta_click', { series_name: seriesName });
+    }
+  } catch (e) {}
+}
+
+// ── 追蹤分享動作 ───────────────────────────────────────────────
+function trackShare(method) {
+  if (!ANALYTICS.enabled) return;
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'share', { method });
+    }
+  } catch (e) {}
+}
 
 // ── TWEAK DEFAULTS ────────────────────────────────────────────────────────────
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -723,13 +803,20 @@ function Result({ rk, onRetake }) {
   // (避免 hard-code domain 造成換站時連回舊版)
   const shareUrl = `${window.location.origin}${window.location.pathname}#result=${rk}`;
   const copyLink = () => {
+    trackShare('copy_link');
     try { navigator.clipboard.writeText(shareUrl).then(() => alert('連結已複製！')); }
     catch { alert('請手動複製網址列連結'); }
   };
-  const shareLine = () => window.open(`https://line.me/R/share?text=${encodeURIComponent('我測出來是「' + r.name + '」！測測你是哪種牆面人格 ' + shareUrl)}`);
-  const shareFB = () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
+  const shareLine = () => {
+    trackShare('LINE');
+    window.open(`https://line.me/R/share?text=${encodeURIComponent('我測出來是「' + r.name + '」！測測你是哪種牆面人格 ' + shareUrl)}`);
+  };
+  const shareFB = () => {
+    trackShare('Facebook');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
+  };
   const shareIG = () => {
-    // IG 不支援 web share intent,引導使用者下載卡片再上傳
+    trackShare('Instagram');
     if (window.confirm('Instagram 不支援直接分享文字連結。\n\n要下載「結果分享卡」圖片嗎?\n下載後可直接上傳到 IG 限動 / 貼文。')) {
       downloadCard();
     }
@@ -1031,7 +1118,15 @@ function App() {
 
   const goQuiz     = () => { window.scrollTo(0,0); setScene('quiz'); };
   const goLanding  = () => { window.scrollTo(0,0); setRk(null); setScene('landing'); };
-  const finishQuiz = (ans) => { setRk(calcResult(ans)); setScene('loading'); };
+  const finishQuiz = (ans) => {
+    const key = calcResult(ans);
+    const name = RESULTS[key]?.name || key;
+    // 送數據到 Google Sheets + GA4
+    trackToSheets(key, name, ans);
+    trackToGA(key, name);
+    setRk(key);
+    setScene('loading');
+  };
   const afterLoad  = () => { window.scrollTo(0,0); setScene('result'); };
 
   // landing 用淺色 nav,result 也用淺色 nav (因為背景是淺米白)
