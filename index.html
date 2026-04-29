@@ -16,13 +16,11 @@
      Google Analytics 4
      把 G-XXXXXXXXXX 換成你的 GA4 評估 ID
      ════════════════════════════════════════════════════════════ -->
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XSV67WGEZK"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-XSV67WGEZK');
 </script>
 <style>
@@ -109,14 +107,8 @@ const { useState, useEffect, useRef, useCallback } = React;
 // 把以下兩個值填入你的實際 ID/URL 後即可啟用
 // ════════════════════════════════════════════════════════════════
 const ANALYTICS = {
-  //
-  // 從 Apps Script → 部署 → 網路應用程式 URL 複製貼上
   SHEETS_URL: 'https://script.google.com/macros/s/AKfycbyla2x49aTtuzbEbP8pCq6iB0ERubSbXS0on2sCYy1kxdyg_hLvzmCyyvlfPHWyIQOK/exec',
-
-  // GA4 評估 ID (同時記得更新上方 <head> 裡的 G-XXXXXXXXXX)
   GA_ID: 'G-XSV67WGEZK',
-
-  // 設成 true 後兩個服務都會開始送資料
   enabled: true,
 };
 
@@ -170,6 +162,26 @@ function trackShare(method) {
       gtag('event', 'share', { method });
     }
   } catch (e) {}
+}
+
+// ── 拉取 Sheets 真實測驗總人數 ────────────────────────────────
+// Apps Script doGet 需回傳 { count: N } (見說明文件)
+// base: 247 — 上線前的模擬底數,真實數字會加在上面
+const COUNT_BASE = 247;
+async function fetchLiveCount() {
+  if (!ANALYTICS.enabled || !ANALYTICS.SHEETS_URL || ANALYTICS.SHEETS_URL.includes('YOUR_')) {
+    return COUNT_BASE;
+  }
+  try {
+    const res = await fetch(ANALYTICS.SHEETS_URL + '?action=count', { mode: 'cors' });
+    if (!res.ok) throw new Error('non-ok');
+    const json = await res.json();
+    const real = parseInt(json.count, 10) || 0;
+    return COUNT_BASE + real;
+  } catch {
+    // 抓不到就用 base
+    return COUNT_BASE;
+  }
 }
 
 // ── TWEAK DEFAULTS ────────────────────────────────────────────────────────────
@@ -792,8 +804,14 @@ function Loading({ onDone }) {
 function Result({ rk, onRetake }) {
   const r = RESULTS[rk];
   const [vis, setVis] = useState(false);
+  const [totalVotes, setTotalVotes] = useState(SIM_STATS.total); // 先顯示靜態,拉到真實後更新
+
   useEffect(() => { setTimeout(() => setVis(true), 80); }, []);
-  const totalVotes = SIM_STATS.total;
+
+  // 拉取真實人數 (mount 後非同步更新)
+  useEffect(() => {
+    fetchLiveCount().then(n => setTotalVotes(n));
+  }, []);
   const myCount = SIM_STATS.counts[rk] || 0;
   const myPct = Math.round(myCount / totalVotes * 100);
   // 找最受歡迎的主題
